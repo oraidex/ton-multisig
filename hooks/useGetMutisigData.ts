@@ -38,11 +38,11 @@ const useGetMultisigData = ({
         endpoint,
       });
 
-      // const address = Address.parse(addressMultisig);
+      const address = Address.parse(addressMultisig);
 
-      const address = Address.parse(
-        "EQCK9nQQaZtak0Gls3U8V8cUhV1UPN-yUL3b_YtEHtdeTcrl"
-      );
+      // const address = Address.parse(
+      //   "EQCK9nQQaZtak0Gls3U8V8cUhV1UPN-yUL3b_YtEHtdeTcrl"
+      // );
 
       console.log("address", address.toString(), client);
       const res = await getMultisigData(address, client);
