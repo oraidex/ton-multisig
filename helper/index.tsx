@@ -627,3 +627,6 @@ export const getAddressByEIP191 = async (isSwitchWallet?: boolean) => {
   const accounts = await metamaskOfflineSinger.getAccounts(isSwitchWallet);
   return accounts[0].address;
 };
+
+
+export {getSenderFromConnector} from './getTonSenderFromConnector'

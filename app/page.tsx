@@ -1,4 +1,4 @@
-import MultisigList from "@/components/page/multisig";
+import MultisigList from "@/components/page/onboard";
 import styles from "./page.module.scss";
 
 export default function Home() {

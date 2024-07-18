@@ -15,10 +15,10 @@ const MultisigList = () => {
   return (
     <div className={styles.multisig}>
       <div className={styles.btn}>
-        <Link href={"/create"} className={styles.btnCreate}>
+        <Link href={"/multisig/create"} className={styles.btnCreate}>
           Create new multisig
         </Link>
-        <Link href={"/import"} className={styles.btnImport}>
+        <Link href={"/multisig/import"} className={styles.btnImport}>
           Import multisig
         </Link>
       </div>
