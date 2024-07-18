@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import styles from "./index.module.scss";
 import useGetMultisigData from "@/hooks/useGetMutisigData";
 import { useParams } from "next/navigation";
+import NumberFormat from "react-number-format";
 
 const EditMultisig = () => {
   const { handleSetListMultisig } = useMultisigActions();
@@ -244,13 +245,22 @@ const EditMultisig = () => {
         <label>Threshold:</label>
         <br />
         <br />
-        <input
-          type="number"
+
+        <NumberFormat
+          placeholder={`Threshold . . .`}
+          thousandSeparator
+          className={styles.input}
+          decimalScale={0}
+          type="text"
           value={threshold}
-          placeholder="Threshold . . ."
-          onChange={(e) => {
-            e.preventDefault();
-            setThreshold(Number(e.target.value));
+          onChange={() => {}}
+          isAllowed={(values) => {
+            const { floatValue } = values;
+            // allow !floatValue to let user can clear their input
+            return !floatValue || (floatValue >= 0 && floatValue <= 1e14);
+          }}
+          onValueChange={({ floatValue }) => {
+            setThreshold(floatValue);
           }}
         />
       </div>

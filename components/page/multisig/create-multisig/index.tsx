@@ -17,6 +17,8 @@ import { Address, beginCell, Cell, storeStateInit, toNano } from "@ton/core";
 import Link from "next/link";
 import { useState } from "react";
 import styles from "./index.module.scss";
+import { displayToast, TToastType } from "@/contexts/toasts/Toast";
+import NumberFormat from "react-number-format";
 
 const CreateMultisig = () => {
   const { handleSetListMultisig } = useMultisigActions();
@@ -129,6 +131,9 @@ const CreateMultisig = () => {
         handleSetListMultisig({ listMultisig });
       } catch (error) {
         console.log("error", error);
+        displayToast(TToastType.TX_FAILED, {
+          message: typeof error === "string" ? error : JSON.stringify(error),
+        });
       } finally {
         setLoading(false);
       }
@@ -208,13 +213,22 @@ const CreateMultisig = () => {
         <label>Threshold:</label>
         <br />
         <br />
-        <input
-          type="number"
+
+        <NumberFormat
+          placeholder={`Threshold . . .`}
+          thousandSeparator
+          className={styles.input}
+          decimalScale={0}
+          type="text"
           value={threshold}
-          placeholder="Threshold . . ."
-          onChange={(e) => {
-            e.preventDefault();
-            setThreshold(Number(e.target.value));
+          onChange={() => {}}
+          isAllowed={(values) => {
+            const { floatValue } = values;
+            // allow !floatValue to let user can clear their input
+            return !floatValue || (floatValue >= 0 && floatValue <= 1e14);
+          }}
+          onValueChange={({ floatValue }) => {
+            setThreshold(floatValue);
           }}
         />
       </div>

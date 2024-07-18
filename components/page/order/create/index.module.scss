@@ -1,78 +1,16 @@
-.createMulti {
+.createOrder {
   width: 100%;
   max-width: 768px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 
-  .form {
-    padding: 24px 0;
-    border-bottom: 1px solid #494949;
+  .item {
+    padding: 12px 0;
 
-    label {
-      color: #fff;
-      font-size: 16px;
-      font-weight: 600;
-      line-height: 150%; /* 24px */
+    &.hidden {
+      display: none;
     }
-
-    .addNew {
-      cursor: pointer;
-      margin-top: 12px;
-      margin-bottom: 24px;
-
-      color: #aee67f;
-      font-size: 16px;
-      font-weight: 600;
-      line-height: 150%; /* 24px */
-
-      &:hover {
-        filter: brightness(1.25);
-      }
-    }
-
-    .formItem {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 12px;
-
-      color: #fff;
-      font-size: 16px;
-      font-weight: 400;
-      line-height: 150%; /* 24px */
-
-      button {
-        color: #e01600;
-        cursor: pointer;
-        padding: 6px;
-
-        &:hover {
-          filter: brightness(2);
-        }
-      }
-
-      input {
-        flex: 1;
-        border: 1px solid #494949;
-        background-color: #181818;
-        border-radius: 99px;
-        padding: 8px 16px;
-
-        &::placeholder {
-          color: #979995;
-        }
-
-        &:focus {
-          border: 1px solid #ebebeb;
-        }
-      }
-    }
-  }
-
-  .threshold {
-    padding: 24px 0;
 
     label {
       color: #fff;
@@ -87,6 +25,37 @@
       background-color: #181818;
       border-radius: 99px;
       padding: 8px 16px;
+      margin-top: 8px;
+
+      &::placeholder {
+        color: #979995;
+      }
+
+      &:focus {
+        border: 1px solid #ebebeb;
+      }
+    }
+
+    select {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 150%;
+
+      width: 100%;
+      border: 1px solid #494949;
+      background-color: #181818;
+      border-radius: 99px;
+      padding: 8px 16px;
+
+      margin-top: 8px;
+
+      /* Arrow */
+      appearance: none;
+      background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOTIuNCIgaGVpZ2h0PSIyOTIuNCI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI4NyA2OS40YTE3LjYgMTcuNiAwIDAgMC0xMy01LjRIMTguNGMtNSAwLTkuMyAxLjgtMTIuOSA1LjRBMTcuNiAxNy42IDAgMCAwIDAgODIuMmMwIDUgMS44IDkuMyA1LjQgMTIuOWwxMjggMTI3LjljMy42IDMuNiA3LjggNS40IDEyLjggNS40czkuMi0xLjggMTIuOC01LjRMMjg3IDk1YzMuNS0zLjUgNS40LTcuOCA1LjQtMTIuOCAwLTUtMS45LTkuMi01LjUtMTIuOHoiLz48L3N2Zz4=");
+      background-repeat: no-repeat;
+      background-position: right 0.7rem top 50%;
+      background-size: 0.65rem auto;
 
       &::placeholder {
         color: #979995;

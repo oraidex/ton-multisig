@@ -75,7 +75,10 @@ const DetailMultisig = () => {
           <Link className={styles.back} href={"/"}>
             Back
           </Link>
-          <Link className={styles.confirm} href={"/order/create"}>
+          <Link
+            className={styles.confirm}
+            href={`/multisig/${addressMultisig}/order`}
+          >
             Create Order
           </Link>
         </div>
@@ -87,7 +90,11 @@ const DetailMultisig = () => {
           {/* TODO: list order */}
           {[1, 2].map((e, idx) => {
             return (
-              <Link key={idx} href={`/order/${1}`} className={styles.orderItem}>
+              <Link
+                key={idx}
+                href={`/multisig/${addressMultisig}/order/${1}`}
+                className={styles.orderItem}
+              >
                 {"Order #1"}
               </Link>
             );
