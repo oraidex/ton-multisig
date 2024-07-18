@@ -68,22 +68,10 @@ const ConnectedInfo: FC<{ onClick: () => void }> = ({ onClick }) => {
       });
   };
 
-  // const OraichainWalet = mapWalletToIcon[oraiWallet];
   const TonNetworkIcon = mapWalletToIcon[tonWallet];
 
   return (
     <div className={styles.connectedInfo} onClick={() => onClick()}>
-      {/* <div className={styles.item}>
-        {OraichainWalet && <OraichainWalet />}
-        {reduceString(oraiAddress, 6, 6)}
-        <CopyIcon
-          className={styles.copy}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleCopy(oraiAddress);
-          }}
-        />
-      </div> */}
       <div className={styles.item}>
         {TonNetworkIcon && <TonNetworkIcon />}
         {reduceString(tonAddress, 6, 6)}
