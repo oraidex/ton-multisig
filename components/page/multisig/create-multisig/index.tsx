@@ -11,7 +11,7 @@ import {
   useMultisigActions,
 } from "@/stores/multisig/selector";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
-import { address, Address, Cell, toNano } from "@ton/core";
+import { address, Address, beginCell, Cell, storeStateInit, toNano } from "@ton/core";
 import {Multisig, MultisigConfig, multisigConfigToCell} from '@oraichain/ton-multiowner/dist/wrappers/Multisig'
 import * as MultisigBuild from '@oraichain/ton-multiowner/dist/build/Multisig.compiled.json'
 import { useTonConnector } from "@/contexts/custom-ton-provider";
@@ -86,8 +86,11 @@ const CreateMultisig = () => {
         await connector.sendTransaction({
           messages: [{
             address:multisig.address.toString(),
-            amount: toNano(1).toString(),
-            stateInit: multisigConfigToCell(multisigConfig).toBoc().toString('base64'),
+            amount: toNano(0.5).toString(),
+            stateInit:beginCell().storeWritable(storeStateInit({
+              data: multisigConfigToCell(multisigConfig),
+              code: multisigCode
+            })).endCell().toBoc().toString('base64')
           }],
           validUntil: Date.now() + 1000 * 60 * 5,
         })
