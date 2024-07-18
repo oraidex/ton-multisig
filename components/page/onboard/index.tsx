@@ -7,6 +7,7 @@ import {
   useMultisigActions,
 } from "@/stores/multisig/selector";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
+import { reduceString } from "@/libs/utils";
 
 const MultisigList = () => {
   const tonAddress = useAuthTonAddress();
@@ -24,11 +25,11 @@ const MultisigList = () => {
       </div>
 
       <div className={styles.list}>
-        {(listMultisig[tonAddress] || []).length && <h2>List multisigs</h2>}
+        {!!(listMultisig[tonAddress] || []).length && <h2>List multisigs</h2>}
 
         {(listMultisig[tonAddress] || []).map((multisig, key) => (
-          <Link href={`/detail/${multisig}`} key={key}>
-            {multisig}&nbsp;
+          <Link href={`/multisig/detail/${multisig}`} key={key}>
+            {reduceString(multisig, 8, 8)}&nbsp;
           </Link>
         ))}
       </div>
