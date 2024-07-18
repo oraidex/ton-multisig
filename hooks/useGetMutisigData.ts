@@ -27,12 +27,14 @@ export const getMultisigData = async (
 const useGetMultisigData = ({
   addressMultisig,
 }: {
-  addressMultisig: string;
+  addressMultisig?: string;
 }) => {
   const [data, setData] = useState<MultisigDataType>(null);
 
-  useEffect(() => {
-    (async () => {
+  const getMultisigDetail = async (addressMultisig: string) => {
+    try {
+      if (!addressMultisig) return;
+
       const endpoint = await getHttpEndpoint();
       const client = new TonClient({
         endpoint,
@@ -51,11 +53,18 @@ const useGetMultisigData = ({
 
       if (res) {
         setData(res);
+        return res;
       }
-    })();
+    } catch (error) {
+      console.log("error :>> getMultisigDetail", error);
+    }
+  };
+
+  useEffect(() => {
+    getMultisigDetail(addressMultisig);
   }, [addressMultisig]);
 
-  return { data };
+  return { data, getMultisigDetail };
 };
 
 export default useGetMultisigData;

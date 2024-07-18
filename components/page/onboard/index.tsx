@@ -27,11 +27,13 @@ const MultisigList = () => {
       <div className={styles.list}>
         {!!(listMultisig[tonAddress] || []).length && <h2>List multisigs</h2>}
 
-        {(listMultisig[tonAddress] || []).map((multisig, key) => (
-          <Link href={`/multisig/${multisig}/detail`} key={key}>
-            {reduceString(multisig, 8, 8)}&nbsp;
-          </Link>
-        ))}
+        <div className={styles.contents}>
+          {[...new Set(listMultisig[tonAddress] || [])].map((multisig, key) => (
+            <Link href={`/multisig/${multisig}/detail`} key={key}>
+              {reduceString(multisig, 8, 8)}&nbsp;
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -68,7 +68,7 @@ const DetailMultisig = () => {
         <span>{Number(nextOrderSeqno) || "Arbitrary"}</span>
 
         <Link href={`/multisig/${addressMultisig}/edit`}>
-          Switch to another multisig
+          Change multisig configuration
         </Link>
 
         <div className={styles.control}>

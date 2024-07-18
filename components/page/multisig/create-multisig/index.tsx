@@ -1,22 +1,22 @@
 "use client";
 
-import Link from "next/link";
-import styles from "./index.module.scss";
-import { useState } from "react";
 import Loader from "@/components/commons/loader/Loader";
-import { sleep } from "@/helper";
-import useGoBackBrowser from "@/hooks/useGoBackBrowser";
+import { useTonConnector } from "@/contexts/custom-ton-provider";
+import { useAuthTonAddress } from "@/stores/authentication/selector";
 import {
   useGetListMultisig,
   useMultisigActions,
 } from "@/stores/multisig/selector";
-import { useAuthTonAddress } from "@/stores/authentication/selector";
-import { address, Address, beginCell, Cell, storeStateInit, toNano } from "@ton/core";
-import {Multisig, MultisigConfig, multisigConfigToCell} from '@oraichain/ton-multiowner/dist/wrappers/Multisig'
-import * as MultisigBuild from '@oraichain/ton-multiowner/dist/build/Multisig.compiled.json'
-import { useTonConnector } from "@/contexts/custom-ton-provider";
-import { TonClient } from "@ton/ton";
-import { getHttpEndpoint } from "@orbs-network/ton-access";
+import * as MultisigBuild from "@oraichain/ton-multiowner/dist/build/Multisig.compiled.json";
+import {
+  Multisig,
+  MultisigConfig,
+  multisigConfigToCell,
+} from "@oraichain/ton-multiowner/dist/wrappers/Multisig";
+import { Address, beginCell, Cell, storeStateInit, toNano } from "@ton/core";
+import Link from "next/link";
+import { useState } from "react";
+import styles from "./index.module.scss";
 
 const CreateMultisig = () => {
   const { handleSetListMultisig } = useMultisigActions();
@@ -69,36 +69,58 @@ const CreateMultisig = () => {
     setProposers(newProposers);
   };
 
-  function onCreateButtonMultisig(setLoading, signers: { id: number; value: string; }[], proposers: { id: number; value: string; }[], threshold: number, listMultisig: Record<string, string[]>, tonAddress: string) {
+  function onCreateButtonMultisig(
+    setLoading,
+    signers: { id: number; value: string }[],
+    proposers: { id: number; value: string }[],
+    threshold: number,
+    listMultisig: Record<string, string[]>,
+    tonAddress: string
+  ) {
     return async () => {
       try {
         setLoading(true);
 
-        const multisigConfig:MultisigConfig ={
+        const multisigConfig: MultisigConfig = {
           threshold,
           signers: signers.map((s) => Address.parse(s.value)),
           proposers: proposers.map((p) => Address.parse(p.value)),
-          allowArbitrarySeqno: false
-        } 
-        const multisigCode = Cell.fromBoc(Buffer.from(MultisigBuild.hex, 'hex'))[0];
-        const multisig = Multisig.createFromConfig(multisigConfig, multisigCode);
+          allowArbitrarySeqno: false,
+        };
+        const multisigCode = Cell.fromBoc(
+          Buffer.from(MultisigBuild.hex, "hex")
+        )[0];
+        const multisig = Multisig.createFromConfig(
+          multisigConfig,
+          multisigCode
+        );
         // Deploy new multisig Wallet
         await connector.sendTransaction({
-          messages: [{
-            address:multisig.address.toString(),
-            amount: toNano(0.5).toString(),
-            stateInit:beginCell().storeWritable(storeStateInit({
-              data: multisigConfigToCell(multisigConfig),
-              code: multisigCode
-            })).endCell().toBoc().toString('base64')
-          }],
+          messages: [
+            {
+              address: multisig.address.toString(),
+              amount: toNano(0.5).toString(),
+              stateInit: beginCell()
+                .storeWritable(
+                  storeStateInit({
+                    data: multisigConfigToCell(multisigConfig),
+                    code: multisigCode,
+                  })
+                )
+                .endCell()
+                .toBoc()
+                .toString("base64"),
+            },
+          ],
           validUntil: Date.now() + 1000 * 60 * 5,
-        })
+        });
         console.log({
-            address:multisig.address.toString(),
-            amount: toNano(1).toString(),
-            stateInit: multisigConfigToCell(multisigConfig).toBoc().toString('base64'),
-          });
+          address: multisig.address.toString(),
+          amount: toNano(1).toString(),
+          stateInit: multisigConfigToCell(multisigConfig)
+            .toBoc()
+            .toString("base64"),
+        });
         if (!listMultisig[tonAddress]) {
           listMultisig[tonAddress] = [multisig.address.toString()];
         } else {
@@ -203,7 +225,14 @@ const CreateMultisig = () => {
         </Link>
         <button
           className={styles.confirm}
-          onClick={onCreateButtonMultisig(setLoading, signers, proposers, threshold, listMultisig, tonAddress)}
+          onClick={onCreateButtonMultisig(
+            setLoading,
+            signers,
+            proposers,
+            threshold,
+            listMultisig,
+            tonAddress
+          )}
         >
           {loading && <Loader width={22} height={22} />} &nbsp; Create
         </button>
@@ -213,6 +242,3 @@ const CreateMultisig = () => {
 };
 
 export default CreateMultisig;
-
-
-

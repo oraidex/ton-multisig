@@ -7,11 +7,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./index.module.scss";
+import useGetMultisigData, { getMultisigData } from "@/hooks/useGetMutisigData";
+import {
+  useGetListMultisig,
+  useMultisigActions,
+} from "@/stores/multisig/selector";
+import { useAuthTonAddress } from "@/stores/authentication/selector";
 
 const ImportMultisig = () => {
   const [loading, setLoading] = useState(false);
   const [multisig, setMultisig] = useState<string>();
   const router = useRouter();
+  const { getMultisigDetail } = useGetMultisigData({});
+  const { handleSetListMultisig } = useMultisigActions();
+  const listMultisig = useGetListMultisig();
+  const tonAddress = useAuthTonAddress();
 
   return (
     <div className={styles.import}>
@@ -39,15 +49,30 @@ const ImportMultisig = () => {
           onClick={async () => {
             try {
               setLoading(true);
-              await sleep(2000);
+              // await sleep(2000);
+              const fmtMultisig = multisig.trim();
 
-              // validate multisig ///
+              const dataMultisig = await getMultisigDetail(fmtMultisig);
 
-              router.push(`/detail/${multisig}`);
+              if (!dataMultisig) {
+                throw "Multisig Address Invalid!";
+              }
+
+              if (!listMultisig[tonAddress]) {
+                listMultisig[tonAddress] = [fmtMultisig];
+              } else {
+                const checkExist =
+                  listMultisig[tonAddress].includes(fmtMultisig);
+                !checkExist && listMultisig[tonAddress].push(fmtMultisig);
+              }
+              handleSetListMultisig({ listMultisig });
+
+              router.push(`/multisig/${fmtMultisig}/detail`);
             } catch (error) {
               console.log("error", error);
               displayToast(TToastType.TX_FAILED, {
-                message: "Multisig Not Found!",
+                message:
+                  typeof error === "string" ? error : JSON.stringify(error),
               });
             } finally {
               setLoading(false);

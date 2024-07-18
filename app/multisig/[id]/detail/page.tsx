@@ -2,11 +2,7 @@ import DetailMultisig from "@/components/page/multisig/detail";
 import styles from "./page.module.scss";
 
 export default function Home() {
-  return (
-    <div className={styles.container}>
-      <DetailMultisig />
-    </div>
-  );
+  return <DetailMultisig />;
 }
 
 // export async function generateStaticParams() {
