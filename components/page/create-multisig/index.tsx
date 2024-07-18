@@ -38,7 +38,7 @@ const CreateMultisig = () => {
     setSigners([
       ...signers,
       {
-        id: signers.length,
+        id: (signers[signers.length - 1]?.id || 0) + 1,
         value: undefined,
       },
     ]);
@@ -57,7 +57,7 @@ const CreateMultisig = () => {
     setProposers([
       ...proposers,
       {
-        id: proposers.length,
+        id: (proposers[proposers.length - 1]?.id || 0) + 1,
         value: undefined,
       },
     ]);
@@ -128,6 +128,7 @@ const CreateMultisig = () => {
                   e.preventDefault();
                   const value = e.target.value;
 
+                  console.log("value", value, s.id);
                   const newSigner = signers.map((oldS) =>
                     oldS.id === s.id ? { ...oldS, value } : oldS
                   );
