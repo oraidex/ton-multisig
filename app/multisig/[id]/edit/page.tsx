@@ -1,10 +1,10 @@
-import DetailMultisig from "@/components/page/multisig/detail";
+import EditMultisig from "@/components/page/multisig/edit-multisig";
 import styles from "./page.module.scss";
 
 export default function Home() {
   return (
-    <div className={styles.multisigPage}>
-      <DetailMultisig />
+    <div className={styles.container}>
+      <EditMultisig />
     </div>
   );
 }
