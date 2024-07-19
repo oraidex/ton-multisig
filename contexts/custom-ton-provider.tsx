@@ -8,14 +8,17 @@ import { useLoadTonBalance } from "@/hooks/useLoadToken";
 import { isMobile } from "@walletconnect/browser-utils";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
 import { TonNetwork } from "@/constants/networks";
+import { TonClient } from "@ton/ton";
 
 export const CustomTonContext = createContext<{
   connector: TonConnect;
+  tonClient: TonClient;
 }>({
   connector: new TonConnect({
     manifestUrl: MANIFEST_URL,
     storage: new TonConnectStorage("Ton:root"),
   }),
+  tonClient: new TonClient({ endpoint: "https://toncenter.com/api/v2/jsonRPC" }),
 });
 
 export const CustomTonProvider = (props: React.PropsWithChildren<{}>) => {
@@ -30,7 +33,8 @@ export const CustomTonProvider = (props: React.PropsWithChildren<{}>) => {
     manifestUrl: MANIFEST_URL,
     storage: new TonConnectStorage("Ton:root"),
   });
-
+  
+  const tonClient = new TonClient({ endpoint: "https://toncenter.com/api/v2/jsonRPC" });
   useEffect(() => {
     connector.restoreConnection({
       // openingDeadlineMS: 5 * 3600 * 1000, // timeout to reconnect
@@ -60,14 +64,14 @@ export const CustomTonProvider = (props: React.PropsWithChildren<{}>) => {
   }, []);
 
   return (
-    <CustomTonContext.Provider value={{ connector }}>
+    <CustomTonContext.Provider value={{ connector,tonClient }}>
       {props.children}
     </CustomTonContext.Provider>
   );
 };
 
 export const useTonConnector = () => {
-  const { connector } = useContext(CustomTonContext);
+  const { connector, tonClient} = useContext(CustomTonContext);
 
-  return { connector };
+  return { connector, tonClient};
 };

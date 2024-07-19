@@ -1,5 +1,4 @@
 "use client";
-
 import Loader from "@/components/commons/loader/Loader";
 import { displayToast, TToastType } from "@/contexts/toasts/Toast";
 import { sleep } from "@/helper";
@@ -13,6 +12,8 @@ import {
   useMultisigActions,
 } from "@/stores/multisig/selector";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
+import { useTonConnector } from "@/contexts/custom-ton-provider";
+import { Address } from "@ton/core";
 
 const ImportMultisig = () => {
   const [loading, setLoading] = useState(false);
@@ -22,7 +23,40 @@ const ImportMultisig = () => {
   const { handleSetListMultisig } = useMultisigActions();
   const listMultisig = useGetListMultisig();
   const tonAddress = useAuthTonAddress();
+  const {tonClient} = useTonConnector()
 
+  const onImport = async () => {
+    try {
+      setLoading(true);
+      const fmtMultisig = multisig.trim();
+      const isDeployed = await tonClient.isContractDeployed(Address.parse(fmtMultisig));
+      if(!isDeployed){
+        throw "Contract not deployed!";
+      }
+
+      const dataMultisig = await getMultisigDetail(fmtMultisig);
+
+      if (!dataMultisig) {
+        throw "Not a Multisig contract";
+      }
+
+      if (!listMultisig[tonAddress]) {
+        listMultisig[tonAddress] = [fmtMultisig];
+      } else {
+        const checkExist = listMultisig[tonAddress].includes(fmtMultisig);
+        !checkExist && listMultisig[tonAddress].push(fmtMultisig);
+      }
+      handleSetListMultisig({ listMultisig });
+      router.push(`/multisig/${fmtMultisig}/detail`);
+    } catch (error) {
+      console.log("error", error);
+      displayToast(TToastType.TX_FAILED, {
+        message: typeof error === "string" ? error : JSON.stringify(error),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className={styles.import}>
       <div className={styles.form}>
@@ -46,38 +80,7 @@ const ImportMultisig = () => {
         </Link>
         <button
           className={styles.confirm}
-          onClick={async () => {
-            try {
-              setLoading(true);
-              // await sleep(2000);
-              const fmtMultisig = multisig.trim();
-
-              const dataMultisig = await getMultisigDetail(fmtMultisig);
-
-              if (!dataMultisig) {
-                throw "Multisig Address Invalid!";
-              }
-
-              if (!listMultisig[tonAddress]) {
-                listMultisig[tonAddress] = [fmtMultisig];
-              } else {
-                const checkExist =
-                  listMultisig[tonAddress].includes(fmtMultisig);
-                !checkExist && listMultisig[tonAddress].push(fmtMultisig);
-              }
-              handleSetListMultisig({ listMultisig });
-
-              router.push(`/multisig/${fmtMultisig}/detail`);
-            } catch (error) {
-              console.log("error", error);
-              displayToast(TToastType.TX_FAILED, {
-                message:
-                  typeof error === "string" ? error : JSON.stringify(error),
-              });
-            } finally {
-              setLoading(false);
-            }
-          }}
+          onClick={onImport}
         >
           {loading && <Loader width={22} height={22} />} &nbsp; Import
         </button>

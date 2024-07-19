@@ -5,13 +5,34 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import styles from "./index.module.scss";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
+import { useTonConnector } from "@/contexts/custom-ton-provider";
+import { useEffect, useState } from "react";
+import { Address, fromNano } from "@ton/core";
 
 const DetailMultisig = () => {
+  const [tonBalance, setTonBalance] = useState(0n);
   const tonAddress = useAuthTonAddress();
   const { id: addressMultisig } = useParams<{ id: string }>();
   const { data } = useGetMultisigData({ addressMultisig });
+  const {tonClient} = useTonConnector();
+  const { threshold, signers, proposers, nextOrderSeqno } = data || {
+    threshold: 0,
+    signers: [],
+    proposers: [],
+    nextOrderSeqno: 0,
+  };
 
-  const { threshold, signers, proposers, nextOrderSeqno } = data || {};
+  useEffect(()=>{
+    const fetchTonBalance = async()=>{
+      try{
+      const balance = await tonClient.getBalance(Address.parse(addressMultisig));
+      setTonBalance(balance);
+      }catch(error){
+        console.log("error", error);
+      }
+    }
+    fetchTonBalance();
+  },[addressMultisig, tonClient])
 
   return (
     <div className={styles.detailPage}>
@@ -26,11 +47,11 @@ const DetailMultisig = () => {
         <label>TON Balance:</label>
 
         {/* TODO: TON balance */}
-        <span>{1.185980644} ??? TON</span>
+        <span>{fromNano(tonBalance.toString())} TON</span>
 
         <label>Threshold:</label>
         {/* TODO: threshold */}
-        <span>1????/{!threshold ? "--" : Number(threshold)}</span>
+        <span>{`${threshold}/${signers?.length}`}</span>
 
         <label>Signers:</label>
         <div className={styles.list}>
@@ -39,33 +60,33 @@ const DetailMultisig = () => {
               <div className={styles.item} key={index}>
                 <span className={styles.id}>#{index + 1} - </span>
                 <span className={styles.address}>{e.toString()}</span>
-                {e.toString() === tonAddress && (
-                  <span className={styles.badge}>It&apos;s You</span>
+                {Address.parse(e.toString()).equals(Address.parse(tonAddress)) && (
+                  <span className={styles.badge}> It&apos;s You</span>
                 )}
               </div>
             );
           })}
         </div>
+        {proposers.length > 0 && (
+          <><label>Proposers:</label><div className={styles.list}>
+            {!(proposers || []).length ? (
+              <span>No Proposers</span>
+            ) : (
+              proposers.map((e:Address, index:number) => {
+                return (
+                  <div className={styles.item} key={index}>
+                    <span className={styles.id}>#{index+1} - </span>
+                    <span className={styles.address}>{e.toString()}</span>
+                  </div>
+                );
+              })
+            )}
+          </div></>
+        )}
+        
 
-        <label>Proposers:</label>
-        <div className={styles.list}>
-          {!(proposers || []).length ? (
-            <span>No Proposers</span>
-          ) : (
-            proposers.map((e, index) => {
-              return (
-                <div className={styles.item} key={index}>
-                  <span className={styles.id}>#1</span>
-                  <span className={styles.address}>{addressMultisig}</span>
-                  <span className={styles.badge}>It&apos;s You</span>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        <label>Order ID:</label>
-        <span>{Number(nextOrderSeqno) || "Arbitrary"}</span>
+        <label>Next Order Seqno:</label>
+        <span>{Number(nextOrderSeqno)}</span>
 
         <Link href={`/multisig/${addressMultisig}/edit`}>
           Change multisig configuration

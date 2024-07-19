@@ -89,11 +89,21 @@
       }
     }
 
+    .badge {
+      border-radius: 99px;
+      border: 1px solid #aee67f;
+      padding: 2px 4px;
+      color: #aee67f;
+      margin-left: 8px;
+      font-size: 12px;
+      font-weight: 400;
+    }
     .list {
       display: flex;
       flex-wrap: wrap;
       // flex-direction: column;
       gap: 6px;
+
 
       .orderItem {
         border: 1px solid #aee67f;

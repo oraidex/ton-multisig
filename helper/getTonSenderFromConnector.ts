@@ -1,7 +1,10 @@
-import { beginCell, Sender, storeStateInit } from "@ton/core";
+import { Address, beginCell, Sender, storeStateInit } from "@ton/core";
 import TonConnect from "@tonconnect/sdk";
 
-export function getSenderFromConnector(connector: TonConnect): Sender {
+export function getSenderFromConnector(
+  connector: TonConnect,
+  address: Address
+): Sender {
   return {
     send: async (args) => {
       let initCell = args.init
@@ -19,5 +22,6 @@ export function getSenderFromConnector(connector: TonConnect): Sender {
         ],
       });
     },
+    address,
   };
 }
