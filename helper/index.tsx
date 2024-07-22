@@ -30,6 +30,7 @@ import { chainInfos } from "@/constants/chainInfo";
 import { MetamaskOfflineSigner } from "@/libs/eip191";
 import Keplr from "@/libs/keplr";
 import { TToastType, displayToast } from "@/contexts/toasts/Toast";
+import { Address, Cell, Dictionary } from "@ton/core";
 
 export interface Tokens {
   denom?: string;
@@ -630,3 +631,12 @@ export const getAddressByEIP191 = async (isSwitchWallet?: boolean) => {
 
 
 export {getSenderFromConnector} from './getTonSenderFromConnector'
+
+export function cellToArray(addrDict: Cell | null) : Array<Cell>  {
+  let resArr: Array<Cell> = [];
+  if(addrDict !== null && addrDict.asSlice().remainingRefs > 0) {
+      const dict = Dictionary.loadDirect(Dictionary.Keys.Uint(8), Dictionary.Values.Cell(), addrDict);
+      resArr = dict.values();
+  }
+  return resArr;
+}

@@ -1,10 +1,14 @@
 "use client";
-
 import useGetMultisigData from "@/hooks/useGetMutisigData";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import styles from "./index.module.scss";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
+import { useBalances } from "@/hooks/useBalance";
+import { fromNano } from "@ton/core";
+import useGetOrderDetail from "@/hooks/useOrderDetail";
+import { cellToArray } from "@/helper";
+import { block } from "sharp";
 
 const DetailOrder = () => {
   const tonAddress = useAuthTonAddress();
@@ -12,12 +16,17 @@ const DetailOrder = () => {
     id: string;
     orderId: string;
   }>();
+  const {data:orderDetail, orderAddress} = useGetOrderDetail({
+    addressMultisig,
+    seq: BigInt(orderId),
+  })
   const { data } = useGetMultisigData({ addressMultisig });
-
   const { threshold, signers, proposers, nextOrderSeqno } = data || {};
-
-  console.log("first", { addressMultisig, orderId });
-
+  const {balances} = useBalances({
+    tonWalletAddress: orderAddress?.toString() || "",
+  });
+ 
+  
   return (
     <div className={styles.detailPage}>
       <div className={styles.detail}>
@@ -26,29 +35,26 @@ const DetailOrder = () => {
 
         <label>Order Address:</label>
         <Link
-          href={`/multisig/${addressMultisig}/detail`}
+          href={`https://tonviewer.com/${orderAddress}`}
+          target="blank"
           className={styles.address}
         >
-          {addressMultisig}
+          {orderAddress}
         </Link>
 
-        <label>TON Balance:</label>
+        <label>TON Balance: </label>
 
-        {/* TODO: TON balance */}
-        <span>{0} ??? TON</span>
+        <span>{fromNano(balances?.['ton'] || 0)} TON</span>
 
         <label>Executed:</label>
 
-        {/* TODO: Executed */}
-        <span>Yes</span>
+        <span>{orderDetail.executed ? "True": "False"}</span>
 
         <label>Approvals:</label>
-        {/* TODO: threshold */}
-        <span>1????/{!threshold ? "--" : Number(threshold)}</span>
-
+        <span>{Number(orderDetail.approvals_num || 0)}/{Number(orderDetail.threshold)}</span>
         <label>Signers:</label>
         <div className={styles.list}>
-          {(signers || []).map((e, index) => {
+          {(orderDetail.signers || []).map((e, index) => {
             return (
               <div className={styles.item} key={index}>
                 <span className={styles.id}>#{index + 1} - </span>
@@ -61,7 +67,7 @@ const DetailOrder = () => {
           })}
         </div>
 
-        {/* <label>Proposers:</label>
+        <label>Proposers:</label>
         <div className={styles.list}>
           {!(proposers || []).length ? (
             <span>No Proposers</span>
@@ -76,33 +82,45 @@ const DetailOrder = () => {
               );
             })
           )}
-        </div> */}
+        </div>
 
         <label>Expires At:</label>
-        <span>{new Date().toDateString()}</span>
+        <span>
+          {orderDetail?.expiration_date ? 
+          new Date(Number(orderDetail.expiration_date.toString()) * 1000)
+          .toString() : ""}
+        </span>
 
         <br />
         <br />
 
         <label>Actions:</label>
-        <div className={styles.list}>
-          {/* TODO: list order */}
-          {[1].map((e, idx) => {
+        <div className={styles.list} >
+        <div>
+        </div>
+          {/* {[orderDetail.order].map((e, idx) => {
             return (
               <>
                 <label>Actions #{idx}:</label>
                 <br />
                 <span>abc</span>
-                {/* <Link
-                  key={idx}
-                  href={`/order/${1}`}
-                  // className={styles.orderItem}
-                >
-                  {"Order #1"}
-                </Link> */}
               </>
             );
-          })}
+          })} */
+            orderDetail?.order?.asSlice()?.remainingRefs > 0 
+            && 
+            cellToArray(orderDetail?.order)?.map((e, idx) => {
+              const eCs = e.asSlice();
+              const messages = eCs.loadRef().toBoc().toString('hex')
+              const actionType = eCs.loadUint(32).toString(16)
+              return (
+                <>
+                  <p>Actions #{idx + 1}: {`0x${actionType}`} </p>
+                  <div style={{wordBreak: "break-all"}}>Raw messages: {messages}</div>
+                </>
+              );
+            })
+         }
         </div>
 
         <div className={styles.control}>

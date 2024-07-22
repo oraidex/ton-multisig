@@ -108,15 +108,14 @@ const DetailMultisig = () => {
 
         <label>Old orders:</label>
         <div className={styles.list}>
-          {/* TODO: list order */}
-          {[1, 2].map((e, idx) => {
+          { [...Array(Number(nextOrderSeqno.toString())).keys()].map((e, idx) => {
             return (
               <Link
                 key={idx}
-                href={`/multisig/${addressMultisig}/order/${1}`}
+                href={`/multisig/${addressMultisig}/order/${e}`}
                 className={styles.orderItem}
               >
-                {"Order #1"}
+                {`Order #${e}`}
               </Link>
             );
           })}
