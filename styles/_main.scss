@@ -48,3 +48,11 @@ a:hover {
   display: flex;
   justify-content: center;
 }
+
+.monaco-editor {
+  border-radius: 20px;
+
+  .overflow-guard {
+    border-radius: 20px;
+  }
+}

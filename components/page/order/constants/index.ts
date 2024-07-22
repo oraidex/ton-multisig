@@ -1,14 +1,26 @@
 export enum OrderType {
-  "Transfer TON",
-  "Transfer Jetton",
-  "Mint Jetton",
-  "Change Jetton Admin",
-  "Claim Jetton Admin",
-  "Top-up Jetton Minter",
-  "Change Jetton Metadata URL",
-  "Force Burn Jetton",
-  "Force Transfer Jetton",
-  "Set status for Jetton Wallet",
+  "Transfer TON", // 0
+  "Transfer Jetton", // 1
+  "Mint Jetton", // 2
+  "Change Jetton Admin", // 3
+  "Custom order", // 4
+  "Claim Jetton Admin", // 5
+  "Top-up Jetton Minter", // 6
+  "Change Jetton Metadata URL", // 7
+  "Force Burn Jetton", // 8
+  "Force Transfer Jetton", // 9
+  "Set status for Jetton Wallet", // 10
+}
+
+export interface OrderInput {
+  type: OrderType;
+  tokenAddress?: string;
+  amount?: number;
+  toAddress?: string;
+  fromAddress?: string;
+  metadataURL?: string;
+  status?: StatusEnum;
+  customMsg?: string;
 }
 
 export enum StatusEnum {
@@ -42,6 +54,7 @@ export const ToAddressLabel = {
   [OrderType["Force Burn Jetton"]]: "",
   [OrderType["Force Transfer Jetton"]]: "To Address",
   [OrderType["Set status for Jetton Wallet"]]: "User Address",
+  [OrderType["Custom order"]]: "Smart Contract",
 };
 
 export const FromAddressLabel = {

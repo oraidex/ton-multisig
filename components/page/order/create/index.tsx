@@ -1,33 +1,34 @@
 "use client";
-import Link from "next/link";
-import styles from "./index.module.scss";
-import { useState } from "react";
+
 import Loader from "@/components/commons/loader/Loader";
+import { useTonConnector } from "@/contexts/custom-ton-provider";
+import { displayToast, TToastType } from "@/contexts/toasts/Toast";
 import { getSenderFromConnector } from "@/helper";
+import { getOrderRequest } from "@/helper/order";
+import useGetMultisigData from "@/hooks/useGetMutisigData";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
-import { Address, toNano } from "@ton/core";
+import Editor from "@monaco-editor/react";
 import {
   Multisig,
   MultisigConfig,
   TransferRequest,
 } from "@oraichain/ton-multiowner/dist/wrappers/Multisig";
-import * as MultisigBuild from "@oraichain/ton-multiowner/dist/build/Multisig.compiled.json";
-import { useTonConnector } from "@/contexts/custom-ton-provider";
-import { displayToast, TToastType } from "@/contexts/toasts/Toast";
-import NumberFormat from "react-number-format";
+import { Address, toNano } from "@ton/core";
 import classNames from "classnames";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import NumberFormat from "react-number-format";
 import {
   AmountLabel,
   FromAddressLabel,
+  OrderInput,
   OrderType,
   StatusEnum,
   ToAddressLabel,
   TokenAddressLabel,
 } from "../constants";
-import { useParams } from "next/navigation";
-import useGetMultisigData from "@/hooks/useGetMutisigData";
-import { OrderInput } from "@/helper/constants";
-import { getOrderRequest } from "@/helper/order";
+import styles from "./index.module.scss";
 
 const CreateOrder = () => {
   const { connector, tonClient } = useTonConnector();
@@ -117,13 +118,16 @@ const CreateOrder = () => {
           <option value="1">Transfer Jetton</option>
           <option value="2">Mint Jetton</option>
           <option value="3">Change Jetton Admin</option>
+          <option value="4">Custom order</option>
           {/* TODO: Add this option later */}
           {/* <option value="4">Claim Jetton Admin</option>
           <option value="5">Top-up Jetton Minter</option>
           <option value="6">Change Jetton Metadata URL</option>
           <option value="7">Force Burn Jetton</option>
           <option value="8">Force Transfer Jetton</option>
-          <option value="9">Set status for Jetton Wallet</option> */}
+          <option value="9">Set status for Jetton Wallet</option>
+          <option value="10">Custom order</option> 
+          */}
         </select>
       </div>
 
@@ -218,6 +222,37 @@ const CreateOrder = () => {
             });
           }}
         />
+      </div>
+
+      <div
+        className={classNames(styles.item, {
+          [styles.hidden]: order.type !== OrderType["Custom order"],
+        })}
+      >
+        <label>Custom Order Messages:</label>
+        <br />
+        <div className={styles.editor}>
+          <Editor
+            theme="vs-dark"
+            height="300px"
+            defaultLanguage="json"
+            options={{}}
+            defaultValue={`{}`}
+            onChange={(value) => {
+              try {
+                console.log("JSON.parse(value", JSON.parse(value));
+                const customMsg = JSON.parse(value);
+
+                setOrder({
+                  ...order,
+                  customMsg: customMsg,
+                });
+              } catch (error) {
+                console.log("error: >> editor custom msg", error);
+              }
+            }}
+          />
+        </div>
       </div>
 
       <div

@@ -1,5 +1,4 @@
-import { OrderType } from "@/components/page/order/constants";
-import { OrderInput } from "./constants";
+import { OrderType, OrderInput } from "@/components/page/order/constants";
 import { TransferRequest } from "@oraichain/ton-multiowner/dist/wrappers/Multisig";
 import {
   Address,
