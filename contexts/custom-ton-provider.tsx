@@ -18,7 +18,9 @@ export const CustomTonContext = createContext<{
     manifestUrl: MANIFEST_URL,
     storage: new TonConnectStorage("Ton:root"),
   }),
-  tonClient: new TonClient({ endpoint: "https://toncenter.com/api/v2/jsonRPC" }),
+  tonClient: new TonClient({
+    endpoint: "https://toncenter.com/api/v2/jsonRPC",
+  }),
 });
 
 export const CustomTonProvider = (props: React.PropsWithChildren<{}>) => {
@@ -33,9 +35,12 @@ export const CustomTonProvider = (props: React.PropsWithChildren<{}>) => {
     manifestUrl: MANIFEST_URL,
     storage: new TonConnectStorage("Ton:root"),
   });
-  
-  const tonClient = new TonClient({ endpoint: "https://toncenter.com/api/v2/jsonRPC" });
+
+  const tonClient = new TonClient({
+    endpoint: "https://toncenter.com/api/v2/jsonRPC",
+  });
   useEffect(() => {
+    console.log(MANIFEST_URL);
     connector.restoreConnection({
       // openingDeadlineMS: 5 * 3600 * 1000, // timeout to reconnect
     });
@@ -64,14 +69,14 @@ export const CustomTonProvider = (props: React.PropsWithChildren<{}>) => {
   }, []);
 
   return (
-    <CustomTonContext.Provider value={{ connector,tonClient }}>
+    <CustomTonContext.Provider value={{ connector, tonClient }}>
       {props.children}
     </CustomTonContext.Provider>
   );
 };
 
 export const useTonConnector = () => {
-  const { connector, tonClient} = useContext(CustomTonContext);
+  const { connector, tonClient } = useContext(CustomTonContext);
 
-  return { connector, tonClient};
+  return { connector, tonClient };
 };

@@ -5,7 +5,7 @@ const nextConfig = {
   sassOptions: {
     includePaths: [path.join("/", "styles")],
   },
-  // output: "export",
+  output: "standalone",
 };
 
 export default nextConfig;
