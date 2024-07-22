@@ -118,7 +118,7 @@ const CreateOrder = () => {
           <option value="1">Transfer Jetton</option>
           <option value="2">Mint Jetton</option>
           <option value="3">Change Jetton Admin</option>
-          <option value="4">Custom order</option>
+          <option value="4">Custom Order</option>
           {/* TODO: Add this option later */}
           {/* <option value="4">Claim Jetton Admin</option>
           <option value="5">Top-up Jetton Minter</option>
@@ -236,7 +236,10 @@ const CreateOrder = () => {
             theme="vs-dark"
             height="300px"
             defaultLanguage="json"
-            options={{}}
+            options={{
+              fontSize: 14,
+              wordWrap: "on",
+            }}
             defaultValue={`{}`}
             onChange={(value) => {
               try {
