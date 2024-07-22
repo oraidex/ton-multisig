@@ -21,6 +21,7 @@ import { useState } from "react";
 import NumberFormat from "react-number-format";
 import {
   AmountLabel,
+  CustomMsg,
   FromAddressLabel,
   OrderInput,
   OrderType,
@@ -240,12 +241,10 @@ const CreateOrder = () => {
               fontSize: 14,
               wordWrap: "on",
             }}
-            defaultValue={`{}`}
+            defaultValue={`{"boc":""}`}
             onChange={(value) => {
               try {
-                console.log("JSON.parse(value", JSON.parse(value));
-                const customMsg = JSON.parse(value);
-
+                const customMsg = JSON.parse(value) as CustomMsg;
                 setOrder({
                   ...order,
                   customMsg: customMsg,
