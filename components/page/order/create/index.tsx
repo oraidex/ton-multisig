@@ -1,33 +1,18 @@
 "use client";
-
 import Link from "next/link";
 import styles from "./index.module.scss";
 import { useState } from "react";
 import Loader from "@/components/commons/loader/Loader";
-import { sleep } from "@/helper";
-import useGoBackBrowser from "@/hooks/useGoBackBrowser";
-import {
-  useGetListMultisig,
-  useMultisigActions,
-} from "@/stores/multisig/selector";
+import { getSenderFromConnector } from "@/helper";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
-import {
-  address,
-  Address,
-  beginCell,
-  Cell,
-  storeStateInit,
-  toNano,
-} from "@ton/core";
+import { Address, toNano } from "@ton/core";
 import {
   Multisig,
   MultisigConfig,
-  multisigConfigToCell,
+  TransferRequest,
 } from "@oraichain/ton-multiowner/dist/wrappers/Multisig";
 import * as MultisigBuild from "@oraichain/ton-multiowner/dist/build/Multisig.compiled.json";
 import { useTonConnector } from "@/contexts/custom-ton-provider";
-import { TonClient } from "@ton/ton";
-import { getHttpEndpoint } from "@orbs-network/ton-access";
 import { displayToast, TToastType } from "@/contexts/toasts/Toast";
 import NumberFormat from "react-number-format";
 import classNames from "classnames";
@@ -40,29 +25,64 @@ import {
   TokenAddressLabel,
 } from "../constants";
 import { useParams } from "next/navigation";
+import useGetMultisigData from "@/hooks/useGetMutisigData";
+import { OrderInput } from "@/helper/constants";
+import { getOrderRequest } from "@/helper/order";
 
 const CreateOrder = () => {
-  const { handleSetListMultisig } = useMultisigActions();
-  const { connector } = useTonConnector();
+  const { connector, tonClient } = useTonConnector();
   const { id: addressMultisig } = useParams<{ id: string }>();
-
-  const listMultisig = useGetListMultisig();
-  const tonAddress = useAuthTonAddress();
+  const { data } = useGetMultisigData({ addressMultisig });
   const [loading, setLoading] = useState(false);
-  const [order, setOrder] = useState<{
-    orderId: string;
-    type: OrderType;
-    tokenAddress?: string;
-    amount?: number;
-    toAddress?: string;
-    fromAddress?: string;
-    metadataURL?: string;
-    status?: StatusEnum;
-  }>({
-    orderId: "1",
+  const tonAddress = useAuthTonAddress();
+
+  const [order, setOrder] = useState<OrderInput>({
     type: 0,
   });
 
+  const onCreate = async () => {
+    try {
+      console.log("orderData", order);
+      setLoading(true);
+      const multiSigConfig: MultisigConfig = {
+        threshold: Number(data.threshold),
+        signers: data.signers,
+        proposers: data.proposers,
+        allowArbitrarySeqno: false,
+      };
+      const multisig = new Multisig(
+        Address.parse(addressMultisig),
+        undefined,
+        multiSigConfig
+      );
+      const multiSigContract = tonClient.open(multisig);
+      const expirationDate = Math.floor(Date.now() / 1000) + 60 * 1000;
+      const sender = getSenderFromConnector(
+        connector,
+        Address.parse(tonAddress)
+      );
+      console.log(order.amount);
+      const request: TransferRequest = await getOrderRequest(
+        tonClient,
+        Address.parse(addressMultisig),
+        order,
+        sender?.address
+      );
+      await multiSigContract.sendNewOrder(
+        sender,
+        [request],
+        expirationDate,
+        toNano(0.1)
+      );
+    } catch (error) {
+      console.log("error:>> ", error);
+      displayToast(TToastType.TX_FAILED, {
+        message: typeof error === "string" ? error : JSON.stringify(error),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className={styles.createOrder}>
       <div className={styles.item}>
@@ -70,15 +90,8 @@ const CreateOrder = () => {
         <br />
         <input
           type="text"
-          value={order.orderId}
-          placeholder="Order ID . . ."
-          onChange={(e) => {
-            e.preventDefault();
-            setOrder({
-              ...order,
-              orderId: e.target.value,
-            });
-          }}
+          value={data?.nextOrderSeqno.toString()}
+          disabled={true}
         />
       </div>
       <div className={styles.item}>
@@ -90,15 +103,12 @@ const CreateOrder = () => {
             const value = Number(e.target.value);
             if (value === OrderType["Set status for Jetton Wallet"]) {
               setOrder({
-                orderId: "1",
                 type: value,
                 status: StatusEnum.unlock,
               });
-
               return;
             }
             setOrder({
-              orderId: "1",
               type: value,
             });
           }}
@@ -107,12 +117,13 @@ const CreateOrder = () => {
           <option value="1">Transfer Jetton</option>
           <option value="2">Mint Jetton</option>
           <option value="3">Change Jetton Admin</option>
-          <option value="4">Claim Jetton Admin</option>
+          {/* TODO: Add this option later */}
+          {/* <option value="4">Claim Jetton Admin</option>
           <option value="5">Top-up Jetton Minter</option>
           <option value="6">Change Jetton Metadata URL</option>
           <option value="7">Force Burn Jetton</option>
           <option value="8">Force Transfer Jetton</option>
-          <option value="9">Set status for Jetton Wallet</option>
+          <option value="9">Set status for Jetton Wallet</option> */}
         </select>
       </div>
 
@@ -158,6 +169,7 @@ const CreateOrder = () => {
             return !floatValue || (floatValue >= 0 && floatValue <= 1e14);
           }}
           onValueChange={({ floatValue }) => {
+            console.log("first", floatValue);
             setOrder({
               ...order,
               amount: floatValue,
@@ -261,27 +273,7 @@ const CreateOrder = () => {
         >
           Back
         </Link>
-        <button
-          className={styles.confirm}
-          onClick={async () => {
-            try {
-              setLoading(true);
-              await sleep(2000);
-
-              // TODO: create order
-              console.log("orderData", order);
-            } catch (error) {
-              console.log("error:>> ", error);
-
-              displayToast(TToastType.TX_FAILED, {
-                message:
-                  typeof error === "string" ? error : JSON.stringify(error),
-              });
-            } finally {
-              setLoading(false);
-            }
-          }}
-        >
+        <button className={styles.confirm} onClick={onCreate}>
           {loading && <Loader width={22} height={22} />} &nbsp; Create
         </button>
       </div>

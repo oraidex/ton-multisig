@@ -59,7 +59,7 @@ export const FromAddressLabel = {
 
 export const TokenAddressLabel = {
   [OrderType["Transfer TON"]]: "",
-  [OrderType["Transfer Jetton"]]: "",
+  [OrderType["Transfer Jetton"]]: "Jetton Minter Address",
   [OrderType["Mint Jetton"]]: "Jetton Minter Address",
   [OrderType["Change Jetton Admin"]]: "Jetton Minter Address",
   [OrderType["Claim Jetton Admin"]]: "Jetton Minter Address",

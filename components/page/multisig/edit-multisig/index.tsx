@@ -93,6 +93,7 @@ const EditMultisig = () => {
           allowArbitrarySeqno: false
         }
         const multisig = new Multisig(Address.parse(addressMultisig), undefined, multiSigConfig);
+        // TODO: createHook useMultiSigContract @quangdz1704
         const multiSigContract = tonClient.open(multisig);
         const sender = getSenderFromConnector(connector, Address.parse(tonAddress));
         await multiSigContract.sendNewOrder(sender, [updateRequest], expirationDate,toNano(0.05));
