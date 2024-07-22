@@ -12,6 +12,9 @@ export enum OrderType {
   "Set status for Jetton Wallet", // 10
 }
 
+export interface CustomMsg {
+  boc: string;
+}
 export interface OrderInput {
   type: OrderType;
   tokenAddress?: string;
@@ -20,7 +23,7 @@ export interface OrderInput {
   fromAddress?: string;
   metadataURL?: string;
   status?: StatusEnum;
-  customMsg?: string;
+  customMsg?: CustomMsg;
 }
 
 export enum StatusEnum {

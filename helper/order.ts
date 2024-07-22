@@ -2,7 +2,7 @@ import { OrderType, OrderInput } from "@/components/page/order/constants";
 import { TransferRequest } from "@oraichain/ton-multiowner/dist/wrappers/Multisig";
 import {
   Address,
-  beginCell,
+  Cell,
   internal as internal_relaxed,
   MessageRelaxed,
   SendMode,
@@ -69,6 +69,12 @@ export const getOrderRequest = async (
         value: toNano(0.05),
         bounce: false,
         body: changeAdminMessage(Address.parse(orderInput.toAddress)),
+      });
+    case OrderType["Custom order"]:
+      message = internal_relaxed({
+        to: orderInput.toAddress,
+        value: toNano(0.05),
+        body: Cell.fromBoc(Buffer.from(orderInput?.customMsg?.boc, "hex"))[0],
       });
       break;
     default:
