@@ -160,11 +160,11 @@ const ConnectButton: FC<{ fullWidth?: boolean }> = ({ fullWidth }) => {
   //   );
   // }, [tonAddress]);
 
-  useEffect(() => {
-    if (tonAddress && tonWallet) {
-      handleConnectWalletInTonNetwork(tonWallet || TonWallet.TonKeeper);
-    }
-  }, [tonAddress, tonWallet]);
+  // useEffect(() => {
+  //   if (tonAddress && tonWallet) {
+  //     handleConnectWalletInTonNetwork(tonWallet || TonWallet.TonKeeper);
+  //   }
+  // }, [tonAddress, tonWallet]);
 
   useEffect(() => {
     if (!(userFriendlyAddress && wallet)) {
