@@ -18,38 +18,38 @@ export function pubkeyToBechAddress(
   return bech32.encode(prefix, bech32.toWords(ripemd160(sha256(pubkey))));
 }
 
-export function getPubkeyFromEthSignatures(
-  rawMsg: Uint8Array,
-  sigResult: string
-) {
-  // On ETHland pubkeys are recovered from signatures, so we're going to:
-  // 1. sign something
-  // 2. recover the pubkey from the signature
-  // 3. derive a secret address from the the pubkey
+// export function getPubkeyFromEthSignatures(
+//   rawMsg: Uint8Array,
+//   sigResult: string
+// ) {
+//   // On ETHland pubkeys are recovered from signatures, so we're going to:
+//   // 1. sign something
+//   // 2. recover the pubkey from the signature
+//   // 3. derive a secret address from the the pubkey
 
-  // strip leading 0x and extract recovery id
-  const sig = fromHex(sigResult.slice(2, -2));
-  let recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
+//   // strip leading 0x and extract recovery id
+//   const sig = fromHex(sigResult.slice(2, -2));
+//   let recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
 
-  // When a Ledger is used, this value doesn't need to be adjusted
-  if (recoveryId < 0) {
-    recoveryId += 27;
-  }
+//   // When a Ledger is used, this value doesn't need to be adjusted
+//   if (recoveryId < 0) {
+//     recoveryId += 27;
+//   }
 
-  const eip191MessagePrefix = toUtf8("\x19Ethereum Signed Message:\n");
-  const rawMsgLength = toUtf8(String(rawMsg.length));
+//   const eip191MessagePrefix = toUtf8("\x19Ethereum Signed Message:\n");
+//   const rawMsgLength = toUtf8(String(rawMsg.length));
 
-  const publicKey = secp256k1.recoverPublicKey(
-    keccak256(
-      new Uint8Array([...eip191MessagePrefix, ...rawMsgLength, ...rawMsg])
-    ),
-    sig,
-    recoveryId,
-    true
-  );
+//   const publicKey = secp256k1.recoverPublicKey(
+//     keccak256(
+//       new Uint8Array([...eip191MessagePrefix, ...rawMsgLength, ...rawMsg])
+//     ),
+//     sig,
+//     recoveryId,
+//     true
+//   );
 
-  return publicKey;
-}
+//   return publicKey;
+// }
 
 export interface IEthProvider {
   request: (request: {
@@ -193,7 +193,7 @@ export class MetamaskOfflineSigner implements OfflineAminoSigner {
 
     // strip leading 0x and trailing recovery id
     const sig = fromHex(sigResult.slice(2, -2));
-    const pubkey = getPubkeyFromEthSignatures(rawMsg, sigResult);
+    const pubkey = Uint8Array[1]; //getPubkeyFromEthSignatures(rawMsg, sigResult);
 
     return {
       signed: signDoc,
@@ -211,6 +211,6 @@ export class MetamaskOfflineSigner implements OfflineAminoSigner {
       method: "personal_sign",
       params: [msgToSign, this.ethAddress],
     })) as string;
-    return getPubkeyFromEthSignatures(rawMsg, sigResult);
+    return Uint8Array[1]; //getPubkeyFromEthSignatures(rawMsg, sigResult);
   }
 }
