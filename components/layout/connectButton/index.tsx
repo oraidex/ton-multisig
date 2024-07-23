@@ -1,17 +1,7 @@
 "use client";
 
-import { CloseIcon } from "@/assets/icons/action";
-import { StepLineIcon } from "@/assets/icons/arrow";
-import { TonNetworkICon } from "@/assets/icons/network";
-import { OraiIcon } from "@/assets/icons/token";
-import Loader from "@/components/commons/loader/Loader";
-import { OraichainWallet, TonNetWorkWallet } from "@/constants/wallets";
 import { useTonConnector } from "@/contexts/custom-ton-provider";
-import { TToastType, displayToast } from "@/contexts/toasts/Toast";
-import { keplrCheck, setStorageKey } from "@/helper";
 import useOnClickOutside from "@/hooks/useOnclickOutside";
-import Keplr from "@/libs/keplr";
-import { initClient } from "@/libs/utils";
 import {
   useAuthOraiAddress,
   useAuthOraiWallet,
@@ -24,20 +14,15 @@ import {
   TonWallet,
 } from "@/stores/authentication/useAuthenticationStore";
 import {
-  CHAIN,
-  WalletInfoCurrentlyEmbedded,
-  isWalletInfoCurrentlyEmbedded,
-  toUserFriendlyAddress,
-} from "@tonconnect/sdk";
+  useTonAddress,
+  useTonConnectModal,
+  useTonConnectUI,
+  useTonWallet,
+} from "@tonconnect/ui-react";
 import classNames from "classnames";
 import { FC, useEffect, useRef, useState } from "react";
 import ConnectedInfo from "../connectedInfo";
 import styles from "./index.module.scss";
-import {
-  useTonAddress,
-  useTonConnectModal,
-  useTonWallet,
-} from "@tonconnect/ui-react";
 
 export type ConnectStatus =
   | "init"
@@ -70,32 +55,33 @@ const ConnectButton: FC<{ fullWidth?: boolean }> = ({ fullWidth }) => {
   const userFriendlyAddress = useTonAddress();
   const wallet = useTonWallet();
   const { state, open: openConnect, close } = useTonConnectModal();
+  const [tonConnectUI, setOptions] = useTonConnectUI();
 
   useOnClickOutside(ref, () => setOpen(false));
 
-  const handleConnectWalletInTonNetwork = async (walletType: TonWallet) => {
-    try {
-      setConnectStatus(walletType);
+  // const handleConnectWalletInTonNetwork = async (walletType: TonWallet) => {
+  //   try {
+  //     setConnectStatus(walletType);
 
-      const walletsList = await connector.getWallets(); // or use `walletsList` fetched before
+  //     const walletsList = await connector.getWallets(); // or use `walletsList` fetched before
 
-      const addressConnected = connector.connect({
-        jsBridgeKey: walletType || "tonkeeper",
-      });
-      console.log("addressConnected", connector.account);
+  //     const addressConnected = connector.connect({
+  //       jsBridgeKey: walletType || "tonkeeper",
+  //     });
+  //     console.log("addressConnected", connector.account);
 
-      return;
-    } catch (error) {
-      console.log("error connect", error);
-    } finally {
-      setConnectStatus("init");
-    }
-  };
+  //     return;
+  //   } catch (error) {
+  //     console.log("error connect", error);
+  //   } finally {
+  //     setConnectStatus("init");
+  //   }
+  // };
 
   const handleDisconnectTon = async (walletType: TonWallet) => {
     try {
-      if (connector.connected) {
-        await connector.disconnect();
+      if (tonConnectUI.connected) {
+        await tonConnectUI.disconnect();
       }
 
       if (tonAddress && walletType === tonWallet) {
@@ -104,32 +90,6 @@ const ConnectButton: FC<{ fullWidth?: boolean }> = ({ fullWidth }) => {
       }
     } catch (error) {
       console.log("error disconnect TON :>>", error);
-    }
-  };
-
-  const hasInstalledWallet = (wallet: OraiWallet | TonWallet) => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    // @ts-ignore
-    const isCheckOwallet = window.owallet?.isOwallet;
-    const version = window?.keplr?.version;
-    const isCheckKeplr = !!version && keplrCheck("keplr");
-    const isMetamask = window?.ethereum?.isMetaMask;
-    //@ts-ignore
-
-    switch (wallet) {
-      case OraiWallet.Keplr:
-        return isCheckKeplr;
-      case OraiWallet.Metamask:
-        return isMetamask;
-      case OraiWallet.OWallet:
-        return isCheckOwallet;
-
-      default:
-        // case ton connect. for @ton-connect/ui-react handle
-        return true;
     }
   };
 
@@ -190,7 +150,7 @@ const ConnectButton: FC<{ fullWidth?: boolean }> = ({ fullWidth }) => {
         [styles.fullWidth]: !!fullWidth,
       })}
     >
-      {!(oraiAddress && tonAddress) ? (
+      {!tonAddress ? (
         <button
           className={styles.buttonConnect}
           onClick={() => {
