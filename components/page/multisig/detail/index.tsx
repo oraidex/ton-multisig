@@ -14,7 +14,7 @@ const DetailMultisig = () => {
   const tonAddress = useAuthTonAddress();
   const { id: addressMultisig } = useParams<{ id: string }>();
   const { data } = useGetMultisigData({ addressMultisig });
-  const {tonClient} = useTonConnector();
+  const { tonClient } = useTonConnector();
   const { threshold, signers, proposers, nextOrderSeqno } = data || {
     threshold: 0,
     signers: [],
@@ -22,17 +22,19 @@ const DetailMultisig = () => {
     nextOrderSeqno: 0,
   };
 
-  useEffect(()=>{
-    const fetchTonBalance = async()=>{
-      try{
-      const balance = await tonClient.getBalance(Address.parse(addressMultisig));
-      setTonBalance(balance);
-      }catch(error){
+  useEffect(() => {
+    const fetchTonBalance = async () => {
+      try {
+        const balance = await tonClient.getBalance(
+          Address.parse(addressMultisig)
+        );
+        setTonBalance(balance);
+      } catch (error) {
         console.log("error", error);
       }
-    }
+    };
     fetchTonBalance();
-  },[addressMultisig, tonClient])
+  }, [addressMultisig, tonClient]);
 
   return (
     <div className={styles.detailPage}>
@@ -60,30 +62,33 @@ const DetailMultisig = () => {
               <div className={styles.item} key={index}>
                 <span className={styles.id}>#{index + 1} - </span>
                 <span className={styles.address}>{e.toString()}</span>
-                {Address.parse(e.toString()).equals(Address.parse(tonAddress)) && (
-                  <span className={styles.badge}> It&apos;s You</span>
-                )}
+                {tonAddress &&
+                  Address.parse(e.toString()).equals(
+                    Address.parse(tonAddress)
+                  ) && <span className={styles.badge}> It&apos;s You</span>}
               </div>
             );
           })}
         </div>
         {proposers.length > 0 && (
-          <><label>Proposers:</label><div className={styles.list}>
-            {!(proposers || []).length ? (
-              <span>No Proposers</span>
-            ) : (
-              proposers.map((e:Address, index:number) => {
-                return (
-                  <div className={styles.item} key={index}>
-                    <span className={styles.id}>#{index+1} - </span>
-                    <span className={styles.address}>{e.toString()}</span>
-                  </div>
-                );
-              })
-            )}
-          </div></>
+          <>
+            <label>Proposers:</label>
+            <div className={styles.list}>
+              {!(proposers || []).length ? (
+                <span>No Proposers</span>
+              ) : (
+                proposers.map((e: Address, index: number) => {
+                  return (
+                    <div className={styles.item} key={index}>
+                      <span className={styles.id}>#{index + 1} - </span>
+                      <span className={styles.address}>{e.toString()}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </>
         )}
-        
 
         <label>Next Order Seqno:</label>
         <span>{Number(nextOrderSeqno)}</span>
@@ -108,17 +113,19 @@ const DetailMultisig = () => {
 
         <label>Old orders:</label>
         <div className={styles.list}>
-          { [...Array(Number(nextOrderSeqno.toString())).keys()].map((e, idx) => {
-            return (
-              <Link
-                key={idx}
-                href={`/multisig/${addressMultisig}/order/${e}`}
-                className={styles.orderItem}
-              >
-                {`Order #${e}`}
-              </Link>
-            );
-          })}
+          {[...Array(Number(nextOrderSeqno.toString())).keys()].map(
+            (e, idx) => {
+              return (
+                <Link
+                  key={idx}
+                  href={`/multisig/${addressMultisig}/order/${e}`}
+                  className={styles.orderItem}
+                >
+                  {`Order #${e}`}
+                </Link>
+              );
+            }
+          )}
         </div>
       </div>
     </div>
