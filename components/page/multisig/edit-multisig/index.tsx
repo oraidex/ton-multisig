@@ -22,9 +22,11 @@ import useGetMultisigData from "@/hooks/useGetMutisigData";
 import { useParams } from "next/navigation";
 import NumberFormat from "react-number-format";
 import { getSenderFromConnector } from "@/helper";
+import { useTonConnectUI } from "@tonconnect/ui-react";
 
 const EditMultisig = () => {
-  const { connector,tonClient } = useTonConnector();
+  const { tonClient } = useTonConnector();
+  const [tonConnectUI] = useTonConnectUI();
   const { id: addressMultisig } = useParams<{ id: string }>();
   const tonAddress = useAuthTonAddress();
   const [loading, setLoading] = useState(false);
@@ -74,7 +76,7 @@ const EditMultisig = () => {
   function onEditMultisig(
     signers: { id: number; value: string }[],
     proposers: { id: number; value: string }[],
-    threshold: number,
+    threshold: number
   ) {
     return async () => {
       try {
@@ -83,20 +85,32 @@ const EditMultisig = () => {
           threshold,
           signers: signers.map((s) => Address.parse(s.value)),
           proposers: proposers.map((p) => Address.parse(p.value)),
-          type: "update"
+          type: "update",
         };
         const expirationDate = Math.floor(Date.now() / 1000) + 60 * 1000;
-        const multiSigConfig:MultisigConfig = {
+        const multiSigConfig: MultisigConfig = {
           threshold,
-          signers:data.signers,
-          proposers:data.proposers,
-          allowArbitrarySeqno: false
-        }
-        const multisig = new Multisig(Address.parse(addressMultisig), undefined, multiSigConfig);
+          signers: data.signers,
+          proposers: data.proposers,
+          allowArbitrarySeqno: false,
+        };
+        const multisig = new Multisig(
+          Address.parse(addressMultisig),
+          undefined,
+          multiSigConfig
+        );
         // TODO: createHook useMultiSigContract @quangdz1704
         const multiSigContract = tonClient.open(multisig);
-        const sender = getSenderFromConnector(connector, Address.parse(tonAddress));
-        await multiSigContract.sendNewOrder(sender, [updateRequest], expirationDate,toNano(0.05));
+        const sender = getSenderFromConnector(
+          tonConnectUI,
+          Address.parse(tonAddress)
+        );
+        await multiSigContract.sendNewOrder(
+          sender,
+          [updateRequest],
+          expirationDate,
+          toNano(0.05)
+        );
       } catch (error) {
         console.log("error", error);
       } finally {
@@ -104,7 +118,6 @@ const EditMultisig = () => {
       }
     };
   }
-
 
   useEffect(() => {
     if (data) {
@@ -119,7 +132,6 @@ const EditMultisig = () => {
           return { id: ind, value: p.toString() };
         })
       );
-     
     }
   }, [data]);
 
@@ -127,7 +139,6 @@ const EditMultisig = () => {
     <div className={styles.createMulti}>
       <div className={styles.order}>
         <label>Order ID: {data?.nextOrderSeqno?.toString()} </label>
-        
       </div>
       <div className={styles.form}>
         <label>Signer:</label>
@@ -221,16 +232,15 @@ const EditMultisig = () => {
       </div>
 
       <div className={styles.control}>
-        <Link className={styles.back} href={`/multisig/${addressMultisig}/detail`}>
+        <Link
+          className={styles.back}
+          href={`/multisig/${addressMultisig}/detail`}
+        >
           Back
         </Link>
         <button
           className={styles.confirm}
-          onClick={onEditMultisig(
-            signers,
-            proposers,
-            threshold,
-          )}
+          onClick={onEditMultisig(signers, proposers, threshold)}
         >
           {loading && <Loader width={22} height={22} />} &nbsp; Save
         </button>

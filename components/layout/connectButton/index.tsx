@@ -1,6 +1,5 @@
 "use client";
 
-import { useTonConnector } from "@/contexts/custom-ton-provider";
 import useOnClickOutside from "@/hooks/useOnclickOutside";
 import {
   useAuthOraiAddress,
@@ -38,7 +37,6 @@ const ConnectButton: FC<{ fullWidth?: boolean }> = ({ fullWidth }) => {
   const tonAddress = useAuthTonAddress();
   const tonWallet = useAuthTonWallet();
   const ref = useRef();
-  const { connector } = useTonConnector();
   const {
     handleSetOraiAddress,
     handleSetOraiWallet,
@@ -54,8 +52,8 @@ const ConnectButton: FC<{ fullWidth?: boolean }> = ({ fullWidth }) => {
 
   const userFriendlyAddress = useTonAddress();
   const wallet = useTonWallet();
-  const { state, open: openConnect, close } = useTonConnectModal();
-  const [tonConnectUI, setOptions] = useTonConnectUI();
+  const { open: openConnect } = useTonConnectModal();
+  const [tonConnectUI] = useTonConnectUI();
 
   useOnClickOutside(ref, () => setOpen(false));
 

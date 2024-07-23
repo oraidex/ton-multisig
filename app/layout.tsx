@@ -32,14 +32,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <AppProvider>
           <ThemeProvider>
-            {/* <CustomTonProvider> */}
             <TonProvider>
-              <ToastProvider>
-                <Header />
-                <Content>{children}</Content>
-              </ToastProvider>
+              <CustomTonProvider>
+                <ToastProvider>
+                  <Header />
+                  <Content>{children}</Content>
+                </ToastProvider>
+              </CustomTonProvider>
             </TonProvider>
-            {/* </CustomTonProvider> */}
           </ThemeProvider>
         </AppProvider>
       </body>

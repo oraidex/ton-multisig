@@ -1,8 +1,8 @@
 import { Address, beginCell, Sender, storeStateInit } from "@ton/core";
-import TonConnect from "@tonconnect/sdk";
+import { TonConnectUI } from "@tonconnect/ui-react";
 
 export function getSenderFromConnector(
-  connector: TonConnect,
+  connector: TonConnectUI,
   address: Address
 ): Sender {
   return {

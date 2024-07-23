@@ -30,9 +30,11 @@ import {
   TokenAddressLabel,
 } from "../constants";
 import styles from "./index.module.scss";
+import { useTonConnectUI } from "@tonconnect/ui-react";
 
 const CreateOrder = () => {
-  const { connector, tonClient } = useTonConnector();
+  const { tonClient } = useTonConnector();
+  const [tonConnectUI] = useTonConnectUI();
   const { id: addressMultisig } = useParams<{ id: string }>();
   const { data } = useGetMultisigData({ addressMultisig });
   const [loading, setLoading] = useState(false);
@@ -60,7 +62,7 @@ const CreateOrder = () => {
       const multiSigContract = tonClient.open(multisig);
       const expirationDate = Math.floor(Date.now() / 1000) + 60 * 1000;
       const sender = getSenderFromConnector(
-        connector,
+        tonConnectUI,
         Address.parse(tonAddress)
       );
       console.log(order.amount);

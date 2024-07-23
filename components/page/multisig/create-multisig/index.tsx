@@ -1,7 +1,6 @@
 "use client";
 
 import Loader from "@/components/commons/loader/Loader";
-import { useTonConnector } from "@/contexts/custom-ton-provider";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
 import {
   useGetListMultisig,
@@ -19,10 +18,11 @@ import { useState } from "react";
 import styles from "./index.module.scss";
 import { displayToast, TToastType } from "@/contexts/toasts/Toast";
 import NumberFormat from "react-number-format";
+import { useTonConnectUI } from "@tonconnect/ui-react";
 
 const CreateMultisig = () => {
   const { handleSetListMultisig } = useMultisigActions();
-  const { connector } = useTonConnector();
+  const [tonConnectUI] = useTonConnectUI();
 
   const listMultisig = useGetListMultisig();
   const tonAddress = useAuthTonAddress();
@@ -97,7 +97,7 @@ const CreateMultisig = () => {
           multisigCode
         );
         // Deploy new multisig Wallet
-        await connector.sendTransaction({
+        await tonConnectUI.sendTransaction({
           messages: [
             {
               address: multisig.address.toString(),
