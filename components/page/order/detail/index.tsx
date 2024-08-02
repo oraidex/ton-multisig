@@ -10,9 +10,11 @@ import useGetOrderDetail from "@/hooks/useOrderDetail";
 import { cellToArray, getSenderFromConnector } from "@/helper";
 import { Order } from "@oraichain/ton-multiowner/dist/wrappers/Order";
 import { useTonConnector } from "@/contexts/custom-ton-provider";
+import { useTonConnectUI } from "@tonconnect/ui-react";
 
 const DetailOrder = () => {
   const tonAddress = useAuthTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
   const { id: addressMultisig, orderId } = useParams<{
     id: string;
     orderId: string;
@@ -26,7 +28,7 @@ const DetailOrder = () => {
   const { balances } = useBalances({
     tonWalletAddress: orderAddress?.toString() || "",
   });
-  const { tonClient, connector } = useTonConnector();
+  const { tonClient } = useTonConnector();
 
   const handleSignMultisig = async () => {
     try {
@@ -36,7 +38,7 @@ const DetailOrder = () => {
       const order = Order.createFromAddress(Address.parse(orderAddress));
       const orderContract = tonClient.open(order);
       const sender = getSenderFromConnector(
-        connector,
+        tonConnectUI,
         Address.parse(tonAddress)
       );
       await orderContract.sendApprove(sender, signerIndex, toNano("0.01"));
