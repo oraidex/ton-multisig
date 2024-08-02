@@ -156,9 +156,9 @@ const DetailOrder = () => {
           >
             Back
           </Link>
-        </div>
-        <div className={styles.control} onClick={handleSignMultisig}>
-          Sign
+          <div className={styles.confirm} onClick={handleSignMultisig}>
+            Sign
+          </div>
         </div>
 
         <br />
