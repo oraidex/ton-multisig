@@ -18,7 +18,7 @@ export const TON_SCAN = "https://tonviewer.com";
 export const MANIFEST_URL =
   typeof window !== "undefined"
     ? `${window.location?.origin}/manifest.json`
-    : "http://localhost:3001/manifest.json"; // http://localhost:3000
+    : "http://localhost:3000/manifest.json"; // http://localhost:3000
 
 export const ARG_BRIDGE_TO_TON = {
   CHANNEL: "channel-0",

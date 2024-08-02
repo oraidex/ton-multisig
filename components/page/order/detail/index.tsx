@@ -5,10 +5,11 @@ import { useParams } from "next/navigation";
 import styles from "./index.module.scss";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
 import { useBalances } from "@/hooks/useBalance";
-import { fromNano } from "@ton/core";
+import { Address, fromNano, toNano } from "@ton/core";
 import useGetOrderDetail from "@/hooks/useOrderDetail";
-import { cellToArray } from "@/helper";
-import { block } from "sharp";
+import { cellToArray, getSenderFromConnector } from "@/helper";
+import { Order } from "@oraichain/ton-multiowner/dist/wrappers/Order";
+import { useTonConnector } from "@/contexts/custom-ton-provider";
 
 const DetailOrder = () => {
   const tonAddress = useAuthTonAddress();
@@ -16,17 +17,34 @@ const DetailOrder = () => {
     id: string;
     orderId: string;
   }>();
-  const {data:orderDetail, orderAddress} = useGetOrderDetail({
+  const { data: orderDetail, orderAddress } = useGetOrderDetail({
     addressMultisig,
     seq: BigInt(orderId),
-  })
+  });
   const { data } = useGetMultisigData({ addressMultisig });
   const { threshold, signers, proposers, nextOrderSeqno } = data || {};
-  const {balances} = useBalances({
+  const { balances } = useBalances({
     tonWalletAddress: orderAddress?.toString() || "",
   });
- 
-  
+  const { tonClient, connector } = useTonConnector();
+
+  const handleSignMultisig = async () => {
+    try {
+      const signerIndex = signers.findIndex((signer) => {
+        return Address.parse(tonAddress).equals(signer);
+      });
+      const order = Order.createFromAddress(Address.parse(orderAddress));
+      const orderContract = tonClient.open(order);
+      const sender = getSenderFromConnector(
+        connector,
+        Address.parse(tonAddress)
+      );
+      await orderContract.sendApprove(sender, signerIndex, toNano("0.01"));
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <div className={styles.detailPage}>
       <div className={styles.detail}>
@@ -44,14 +62,17 @@ const DetailOrder = () => {
 
         <label>TON Balance: </label>
 
-        <span>{fromNano(balances?.['ton'] || 0)} TON</span>
+        <span>{fromNano(balances?.["ton"] || 0)} TON</span>
 
         <label>Executed:</label>
 
-        <span>{orderDetail.executed ? "True": "False"}</span>
+        <span>{orderDetail.executed ? "True" : "False"}</span>
 
         <label>Approvals:</label>
-        <span>{Number(orderDetail.approvals_num || 0)}/{Number(orderDetail.threshold)}</span>
+        <span>
+          {Number(orderDetail.approvals_num || 0)}/
+          {Number(orderDetail.threshold)}
+        </span>
         <label>Signers:</label>
         <div className={styles.list}>
           {(orderDetail.signers || []).map((e, index) => {
@@ -86,19 +107,21 @@ const DetailOrder = () => {
 
         <label>Expires At:</label>
         <span>
-          {orderDetail?.expiration_date ? 
-          new Date(Number(orderDetail.expiration_date.toString()) * 1000)
-          .toString() : ""}
+          {orderDetail?.expiration_date
+            ? new Date(
+                Number(orderDetail.expiration_date.toString()) * 1000
+              ).toString()
+            : ""}
         </span>
 
         <br />
         <br />
 
         <label>Actions:</label>
-        <div className={styles.list} >
-        <div>
-        </div>
-          {/* {[orderDetail.order].map((e, idx) => {
+        <div className={styles.list}>
+          <div></div>
+          {
+            /* {[orderDetail.order].map((e, idx) => {
             return (
               <>
                 <label>Actions #{idx}:</label>
@@ -107,20 +130,23 @@ const DetailOrder = () => {
               </>
             );
           })} */
-            orderDetail?.order?.asSlice()?.remainingRefs > 0 
-            && 
-            cellToArray(orderDetail?.order)?.map((e, idx) => {
-              const eCs = e.asSlice();
-              const messages = eCs.loadRef().toBoc().toString('hex')
-              const actionType = eCs.loadUint(32).toString(16)
-              return (
-                <>
-                  <p>Actions #{idx + 1}: {`0x${actionType}`} </p>
-                  <div style={{wordBreak: "break-all"}}>Raw messages: {messages}</div>
-                </>
-              );
-            })
-         }
+            orderDetail?.order?.asSlice()?.remainingRefs > 0 &&
+              cellToArray(orderDetail?.order)?.map((e, idx) => {
+                const eCs = e.asSlice();
+                const messages = eCs.loadRef().toBoc().toString("hex");
+                const actionType = eCs.loadUint(32).toString(16);
+                return (
+                  <>
+                    <p>
+                      Actions #{idx + 1}: {`0x${actionType}`}{" "}
+                    </p>
+                    <div style={{ wordBreak: "break-all" }}>
+                      Raw messages: {messages}
+                    </div>
+                  </>
+                );
+              })
+          }
         </div>
 
         <div className={styles.control}>
@@ -130,6 +156,9 @@ const DetailOrder = () => {
           >
             Back
           </Link>
+        </div>
+        <div className={styles.control} onClick={handleSignMultisig}>
+          Sign
         </div>
 
         <br />
