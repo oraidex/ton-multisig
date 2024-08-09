@@ -23,6 +23,7 @@ import {
   AmountLabel,
   CustomMsg,
   FromAddressLabel,
+  JETTON_MINTER_DEFAULT,
   OrderInput,
   OrderType,
   StatusEnum,
@@ -112,6 +113,18 @@ const CreateOrder = () => {
               });
               return;
             }
+            if (
+              [OrderType["Transfer Jetton"], OrderType["Mint Jetton"]].includes(
+                value
+              )
+            ) {
+              setOrder({
+                type: value,
+                supportToken: JETTON_MINTER_DEFAULT.jUSDT,
+                tokenAddress: JETTON_MINTER_DEFAULT.jUSDT,
+              });
+              return;
+            }
             setOrder({
               type: value,
             });
@@ -133,6 +146,34 @@ const CreateOrder = () => {
           */}
         </select>
       </div>
+      <div
+        className={classNames(styles.item, {
+          [styles.hidden]: ![
+            OrderType["Transfer Jetton"],
+            OrderType["Mint Jetton"],
+          ].includes(order.type),
+        })}
+      >
+        <label>Jetton Token:</label>
+        <br />
+        <select
+          id="jettonToken_typeInput"
+          onChange={(e) => {
+            const value = e.target.value;
+
+            setOrder({
+              ...order,
+              supportToken: value,
+              tokenAddress: value,
+            });
+          }}
+        >
+          <option value={JETTON_MINTER_DEFAULT.jUSDT}>jUSDT</option>
+          <option value={JETTON_MINTER_DEFAULT.jUSDC}>jUSDC</option>
+          <option value={JETTON_MINTER_DEFAULT.USDT}>USD₮</option>
+          <option value={JETTON_MINTER_DEFAULT.CUSTOM}>Custom Jetton</option>
+        </select>
+      </div>
 
       <div
         className={classNames(styles.item, {
@@ -150,6 +191,29 @@ const CreateOrder = () => {
             setOrder({
               ...order,
               fromAddress: e.target.value,
+            });
+          }}
+        />
+      </div>
+
+      <div
+        className={classNames(styles.item, {
+          [styles.hidden]:
+            (TokenAddressLabel[order.type] && order.supportToken) || // !ton, supportToken = true
+            !TokenAddressLabel[order.type], // = ton
+        })}
+      >
+        <label>{TokenAddressLabel[order?.type]}:</label>
+        <br />
+        <input
+          type="text"
+          value={order.tokenAddress}
+          placeholder={`${TokenAddressLabel[order.type]} . . .`}
+          onChange={(e) => {
+            e.preventDefault();
+            setOrder({
+              ...order,
+              tokenAddress: e.target.value,
             });
           }}
         />
@@ -180,27 +244,6 @@ const CreateOrder = () => {
             setOrder({
               ...order,
               amount: floatValue,
-            });
-          }}
-        />
-      </div>
-
-      <div
-        className={classNames(styles.item, {
-          [styles.hidden]: !TokenAddressLabel[order.type],
-        })}
-      >
-        <label>{TokenAddressLabel[order?.type]}:</label>
-        <br />
-        <input
-          type="text"
-          value={order.tokenAddress}
-          placeholder={`${TokenAddressLabel[order.type]} . . .`}
-          onChange={(e) => {
-            e.preventDefault();
-            setOrder({
-              ...order,
-              tokenAddress: e.target.value,
             });
           }}
         />
