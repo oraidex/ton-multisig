@@ -14,6 +14,12 @@ import {
 import { useAuthTonAddress } from "@/stores/authentication/selector";
 import { useTonConnector } from "@/contexts/custom-ton-provider";
 import { Address } from "@ton/core";
+import useHandleMultisigServer, {
+  DEFAULT_BE_DATA,
+  parseJsonDataFromSqlite,
+} from "@/hooks/useHandleMultisigServer";
+import { toUserFriendlyAddress } from "@tonconnect/sdk";
+import { reduceString } from "@/libs/utils";
 
 const ImportMultisig = () => {
   const [loading, setLoading] = useState(false);
@@ -23,14 +29,18 @@ const ImportMultisig = () => {
   const { handleSetListMultisig } = useMultisigActions();
   const listMultisig = useGetListMultisig();
   const tonAddress = useAuthTonAddress();
-  const {tonClient} = useTonConnector()
+  const { tonClient } = useTonConnector();
+  const { getMultisigDetailSnapshot, updateMultisigSnapshot } =
+    useHandleMultisigServer();
 
   const onImport = async () => {
     try {
       setLoading(true);
       const fmtMultisig = multisig.trim();
-      const isDeployed = await tonClient.isContractDeployed(Address.parse(fmtMultisig));
-      if(!isDeployed){
+      const isDeployed = await tonClient.isContractDeployed(
+        Address.parse(fmtMultisig)
+      );
+      if (!isDeployed) {
         throw "Contract not deployed!";
       }
 
@@ -40,13 +50,52 @@ const ImportMultisig = () => {
         throw "Not a Multisig contract";
       }
 
-      if (!listMultisig[tonAddress]) {
-        listMultisig[tonAddress] = [fmtMultisig];
-      } else {
-        const checkExist = listMultisig[tonAddress].includes(fmtMultisig);
-        !checkExist && listMultisig[tonAddress].push(fmtMultisig);
-      }
-      handleSetListMultisig({ listMultisig });
+      const dataSnapshot = await getMultisigDetailSnapshot(fmtMultisig);
+      const importedBy = parseJsonDataFromSqlite(
+        dataSnapshot?.data?.importedBy
+      );
+
+      const updateIncluded = Array.from(
+        new Set([...(importedBy || []), tonAddress])
+      );
+
+      console.log("first", updateIncluded);
+
+      const { data: dataBE = DEFAULT_BE_DATA } = dataMultisig || {};
+      await updateMultisigSnapshot(
+        fmtMultisig,
+        {
+          ...dataBE,
+          address: dataBE.address || fmtMultisig,
+          name:
+            dataBE.name || reduceString(dataBE.address || fmtMultisig, 8, 8),
+          proposers:
+            dataBE.proposers ||
+            JSON.stringify(
+              dataMultisig.proposers.map((e) =>
+                toUserFriendlyAddress(e.toRawString())
+              )
+            ),
+          signers:
+            dataBE.signers ||
+            JSON.stringify(
+              dataMultisig.signers.map((e) =>
+                toUserFriendlyAddress(e.toRawString())
+              )
+            ),
+          importedBy: JSON.stringify(updateIncluded),
+        },
+        tonAddress
+      );
+
+      // if (!listMultisig[tonAddress]) {
+      //   listMultisig[tonAddress] = [fmtMultisig];
+      // } else {
+      //   const checkExist = listMultisig[tonAddress].includes(fmtMultisig);
+      //   !checkExist && listMultisig[tonAddress].push(fmtMultisig);
+      // }
+      // handleSetListMultisig({ listMultisig });
+
       router.push(`/multisig/${fmtMultisig}/detail`);
     } catch (error) {
       console.log("error", error);
@@ -78,10 +127,7 @@ const ImportMultisig = () => {
         <Link className={styles.back} href={"/"}>
           Back
         </Link>
-        <button
-          className={styles.confirm}
-          onClick={onImport}
-        >
+        <button className={styles.confirm} onClick={onImport}>
           {loading && <Loader width={22} height={22} />} &nbsp; Import
         </button>
       </div>

@@ -4,12 +4,17 @@ import { Multisig } from "@oraichain/ton-multiowner/dist/wrappers/Multisig";
 import { getHttpEndpoint } from "@orbs-network/ton-access";
 import { Address, TonClient } from "@ton/ton";
 import { useEffect, useState } from "react";
+import useHandleMultisigServer, {
+  DEFAULT_BE_DATA,
+  MultisigSnapshot,
+} from "./useHandleMultisigServer";
 
 export type MultisigDataType = {
   nextOrderSeqno: bigint;
   threshold: bigint;
   signers: Address[];
   proposers: Address[];
+  data: MultisigSnapshot;
 };
 
 export const getMultisigData = async (
@@ -30,6 +35,7 @@ const useGetMultisigData = ({
   addressMultisig?: string;
 }) => {
   const [data, setData] = useState<MultisigDataType>(null);
+  const { getMultisigDetailSnapshot } = useHandleMultisigServer();
 
   const getMultisigDetail = async (addressMultisig: string) => {
     try {
@@ -48,12 +54,19 @@ const useGetMultisigData = ({
 
       console.log("address", address.toString(), client);
       const res = await getMultisigData(address, client);
+      const multisigOnBE = (await getMultisigDetailSnapshot(
+        address.toString()
+      )) || { data: DEFAULT_BE_DATA };
 
-      console.log("res", res);
+      console.log("res", res, multisigOnBE);
 
       if (res) {
-        setData(res);
-        return res;
+        const data = {
+          ...res,
+          ...(multisigOnBE?.data ? multisigOnBE : { data: DEFAULT_BE_DATA }),
+        };
+        setData(data);
+        return data;
       }
     } catch (error) {
       console.log("error :>> getMultisigDetail", error);

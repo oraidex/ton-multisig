@@ -16,7 +16,7 @@ import {
 import { Address, toNano } from "@ton/core";
 import classNames from "classnames";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import NumberFormat from "react-number-format";
 import {
@@ -40,6 +40,7 @@ const CreateOrder = () => {
   const { data } = useGetMultisigData({ addressMultisig });
   const [loading, setLoading] = useState(false);
   const tonAddress = useAuthTonAddress();
+  const router = useRouter();
 
   const [order, setOrder] = useState<OrderInput>({
     type: 0,
@@ -73,12 +74,15 @@ const CreateOrder = () => {
         order,
         sender?.address
       );
+
       await multiSigContract.sendNewOrder(
         sender,
         [request],
         expirationDate,
         toNano(0.1)
       );
+
+      router.push(`/multisig/${addressMultisig}/detail`);
     } catch (error) {
       console.log("error:>> ", error);
       displayToast(TToastType.TX_FAILED, {
@@ -88,6 +92,7 @@ const CreateOrder = () => {
       setLoading(false);
     }
   };
+
   return (
     <div className={styles.createOrder}>
       <div className={styles.item}>

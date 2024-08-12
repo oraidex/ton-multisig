@@ -8,10 +8,24 @@ import {
 } from "@/stores/multisig/selector";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
 import { reduceString } from "@/libs/utils";
+import { useEffect, useState } from "react";
+import useHandleMultisigServer from "@/hooks/useHandleMultisigServer";
 
 const MultisigList = () => {
   const tonAddress = useAuthTonAddress();
   const listMultisig = useGetListMultisig();
+  const [myMultisig, setMyMultisig] = useState([]);
+
+  const { getMultisigListSnapshot } = useHandleMultisigServer();
+
+  useEffect(() => {
+    (async () => {
+      const response = await getMultisigListSnapshot(tonAddress);
+      if (response?.data) {
+        setMyMultisig(response.data);
+      }
+    })();
+  }, [tonAddress]);
 
   return (
     <div className={styles.multisig}>
@@ -25,14 +39,19 @@ const MultisigList = () => {
       </div>
 
       <div className={styles.list}>
-        {!!(listMultisig[tonAddress] || []).length && <h2>List multisigs</h2>}
+        {!!(myMultisig || []).length && <h2>List multisigs</h2>}
 
         <div className={styles.contents}>
-          {[...new Set(listMultisig[tonAddress] || [])].map((multisig, key) => (
-            <Link href={`/multisig/${multisig}/detail`} key={key}>
-              {reduceString(multisig, 8, 8)}&nbsp;
-            </Link>
-          ))}
+          {[...new Set(myMultisig || [])].map((multisig, key) => {
+            const { name = "", address = "" } = multisig || {};
+
+            return (
+              <Link href={`/multisig/${address}/detail`} key={key}>
+                {name}
+                {/* {reduceString(multisig, 8, 8)}&nbsp; */}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>
