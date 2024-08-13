@@ -67,7 +67,7 @@ const DetailMultisig = () => {
           {(signers || []).map((e, index) => {
             const signersBE = parseJsonDataFromSqlite(dataBE.signers);
             const currentSigner = signersBE?.find(
-              (s: any) => s.value === e.toString()
+              (s: any) => s.value === toUserFriendlyAddress(e.toRawString())
             );
 
             return (
@@ -97,7 +97,8 @@ const DetailMultisig = () => {
                 proposers.map((e: Address, index: number) => {
                   const proposersBE = parseJsonDataFromSqlite(dataBE.proposers);
                   const currentProposer = proposersBE?.find(
-                    (s: any) => s.value === e.toString()
+                    (s: any) =>
+                      s.value === toUserFriendlyAddress(e.toRawString())
                   );
 
                   return (

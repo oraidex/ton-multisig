@@ -15,7 +15,7 @@ import {
   UpdateRequest,
 } from "@oraichain/ton-multiowner/dist/wrappers/Multisig";
 import { Address, toNano } from "@ton/core";
-import { useTonConnectUI } from "@tonconnect/ui-react";
+import { toUserFriendlyAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -150,12 +150,13 @@ const EditMultisig = () => {
       setSigners(
         (data.signers || []).map((s, ind) => {
           const signersBE = parseJsonDataFromSqlite(dataBE.signers);
+          const friendlyAddress = toUserFriendlyAddress(s.toRawString());
           const currentSigner = signersBE?.find(
-            (e: any) => e.value === s.toString()
+            (e: any) => e.value === friendlyAddress
           );
           return {
             id: ind,
-            value: s.toString(),
+            value: friendlyAddress,
             name: currentSigner?.name || "",
           };
         })
@@ -163,12 +164,13 @@ const EditMultisig = () => {
       setProposers(
         (data.proposers || []).map((p, ind) => {
           const proposersBE = parseJsonDataFromSqlite(dataBE.proposers);
+          const friendlyAddress = toUserFriendlyAddress(p.toRawString());
           const currentProposer = proposersBE?.find(
-            (e: any) => e.value === p.toString()
+            (e: any) => e.value === friendlyAddress
           );
           return {
             id: ind,
-            value: p.toString(),
+            value: friendlyAddress,
             name: currentProposer?.name || "",
           };
         })
