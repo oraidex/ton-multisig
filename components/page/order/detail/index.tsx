@@ -5,18 +5,22 @@ import { useParams } from "next/navigation";
 import styles from "./index.module.scss";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
 import { useBalances } from "@/hooks/useBalance";
-import { Address, fromNano } from "@ton/core";
-import useGetOrderDetail from "@/hooks/useOrderDetail";
-import { cellToArray } from "@/helper";
 import { block } from "sharp";
 import {
   DEFAULT_BE_DATA,
   parseJsonDataFromSqlite,
 } from "@/hooks/useHandleMultisigServer";
+import { Address, fromNano, toNano } from "@ton/core";
+import useGetOrderDetail from "@/hooks/useOrderDetail";
+import { cellToArray, getSenderFromConnector } from "@/helper";
+import { Order } from "@oraichain/ton-multiowner/dist/wrappers/Order";
+import { useTonConnector } from "@/contexts/custom-ton-provider";
+import { useTonConnectUI } from "@tonconnect/ui-react";
 
 const parseAddress = (address: string) => Address.parse(address);
 const DetailOrder = () => {
   const tonAddress = useAuthTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
   const { id: addressMultisig, orderId } = useParams<{
     id: string;
     orderId: string;
@@ -31,6 +35,25 @@ const DetailOrder = () => {
     tonWalletAddress: orderAddress?.toString() || "",
   });
   const { data: dataBE = DEFAULT_BE_DATA } = data || {};
+
+  const { tonClient } = useTonConnector();
+
+  const handleSignMultisig = async () => {
+    try {
+      const signerIndex = signers.findIndex((signer) => {
+        return Address.parse(tonAddress).equals(signer);
+      });
+      const order = Order.createFromAddress(Address.parse(orderAddress));
+      const orderContract = tonClient.open(order);
+      const sender = getSenderFromConnector(
+        tonConnectUI,
+        Address.parse(tonAddress)
+      );
+      await orderContract.sendApprove(sender, signerIndex, toNano("0.01"));
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <div className={styles.detailPage}>
@@ -165,6 +188,9 @@ const DetailOrder = () => {
           >
             Back
           </Link>
+          <div className={styles.confirm} onClick={handleSignMultisig}>
+            Sign
+          </div>
         </div>
 
         <br />
