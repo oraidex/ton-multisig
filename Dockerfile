@@ -15,6 +15,12 @@ RUN \
     else echo "Lockfile not found." && exit 1; \
     fi
 
+# Check if dev.db exists and run Prisma migrate if not
+RUN \
+    if [ ! -f "dev.db" ]; \
+    then npx prisma migrate deploy; \
+    else echo "Database exists, skipping migration"; \
+    fi
 
 # Rebuild the source code only when needed
 FROM base AS builder
