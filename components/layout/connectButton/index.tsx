@@ -131,8 +131,6 @@ const ConnectButton: FC<{ fullWidth?: boolean }> = ({ fullWidth }) => {
       return;
     }
 
-    console.log("userFriendlyAddress", userFriendlyAddress, wallet);
-
     handleSetTonAddress({ tonAddress: userFriendlyAddress });
     handleSetTonWallet({
       tonWallet:
@@ -141,7 +139,6 @@ const ConnectButton: FC<{ fullWidth?: boolean }> = ({ fullWidth }) => {
     });
   }, [userFriendlyAddress, wallet]);
 
-  console.log("tonAddress", tonAddress);
   return (
     <div
       className={classNames(styles.wrapperConnect, {

@@ -5,13 +5,20 @@ import { useParams } from "next/navigation";
 import styles from "./index.module.scss";
 import { useAuthTonAddress } from "@/stores/authentication/selector";
 import { useBalances } from "@/hooks/useBalance";
+import { block } from "sharp";
+import {
+  DEFAULT_BE_DATA,
+  parseJsonDataFromSqlite,
+} from "@/hooks/useHandleMultisigServer";
 import { Address, fromNano, toNano } from "@ton/core";
 import useGetOrderDetail from "@/hooks/useOrderDetail";
 import { cellToArray, getSenderFromConnector } from "@/helper";
 import { Order } from "@oraichain/ton-multiowner/dist/wrappers/Order";
 import { useTonConnector } from "@/contexts/custom-ton-provider";
 import { useTonConnectUI } from "@tonconnect/ui-react";
+import { displayToast, TToastType } from "@/contexts/toasts/Toast";
 
+const parseAddress = (address: string) => Address.parse(address);
 const DetailOrder = () => {
   const tonAddress = useAuthTonAddress();
   const [tonConnectUI] = useTonConnectUI();
@@ -28,6 +35,8 @@ const DetailOrder = () => {
   const { balances } = useBalances({
     tonWalletAddress: orderAddress?.toString() || "",
   });
+  const { data: dataBE = DEFAULT_BE_DATA } = data || {};
+
   const { tonClient } = useTonConnector();
 
   const handleSignMultisig = async () => {
@@ -42,8 +51,12 @@ const DetailOrder = () => {
         Address.parse(tonAddress)
       );
       await orderContract.sendApprove(sender, signerIndex, toNano("0.01"));
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      console.log(error);
+
+      displayToast(TToastType.TX_FAILED, {
+        message: typeof error === "string" ? error : JSON.stringify(error),
+      });
     }
   };
 
@@ -78,13 +91,23 @@ const DetailOrder = () => {
         <label>Signers:</label>
         <div className={styles.list}>
           {(orderDetail.signers || []).map((e, index) => {
+            const signersBE = parseJsonDataFromSqlite(dataBE.signers);
+            const currentSigner = signersBE?.find(
+              (s: any) => s.value === e.toString()
+            );
             return (
               <div className={styles.item} key={index}>
                 <span className={styles.id}>#{index + 1} - </span>
-                <span className={styles.address}>{e.toString()}</span>
-                {e.toString() === tonAddress && (
-                  <span className={styles.badge}>It&apos;s You</span>
-                )}
+                <span className={styles.address}>
+                  {e.toString()}
+                  <span className={styles.nameSuffix}>
+                    {`${currentSigner ? ` (${currentSigner.name})` : ""}`}
+                  </span>
+                </span>
+                {tonAddress &&
+                  parseAddress(e.toString()).equals(
+                    parseAddress(tonAddress)
+                  ) && <span className={styles.badge}> It&apos;s You</span>}
               </div>
             );
           })}
@@ -96,11 +119,23 @@ const DetailOrder = () => {
             <span>No Proposers</span>
           ) : (
             proposers.map((e, index) => {
+              const proposersBE = parseJsonDataFromSqlite(dataBE.proposers);
+              const currentProposer = proposersBE?.find(
+                (p: any) => p.value === e.toString()
+              );
               return (
                 <div className={styles.item} key={index}>
                   <span className={styles.id}>#1</span>
-                  <span className={styles.address}>{addressMultisig}</span>
-                  <span className={styles.badge}>It&apos;s You</span>
+                  <span className={styles.address}>
+                    {addressMultisig}
+                    <span className={styles.nameSuffix}>
+                      {`${currentProposer ? ` (${currentProposer.name})` : ""}`}
+                    </span>
+                  </span>
+                  {tonAddress &&
+                    parseAddress(e.toString()).equals(
+                      parseAddress(tonAddress)
+                    ) && <span className={styles.badge}> It&apos;s You</span>}
                 </div>
               );
             })

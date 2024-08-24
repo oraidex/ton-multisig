@@ -18,6 +18,7 @@ export interface CustomMsg {
 export interface OrderInput {
   type: OrderType;
   tokenAddress?: string;
+  supportToken?: string;
   amount?: number;
   toAddress?: string;
   fromAddress?: string;
@@ -85,3 +86,10 @@ export const TokenAddressLabel = {
   [OrderType["Force Transfer Jetton"]]: "Jetton Minter Address",
   [OrderType["Set status for Jetton Wallet"]]: "Jetton Minter Address",
 };
+
+export enum JETTON_MINTER_DEFAULT {
+  USDT = "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+  jUSDT = "EQBynBO23ywHy_CgarY9NK9FTz0yDsG82PtcbSTQgGoXwiuA",
+  jUSDC = "EQB-MPwrd1G6WKNkLz_VnV6WqBDd142KMQv-g1O-8QUA3728",
+  CUSTOM = "",
+}

@@ -98,12 +98,12 @@
       font-size: 12px;
       font-weight: 400;
     }
+
     .list {
       display: flex;
       flex-wrap: wrap;
       // flex-direction: column;
       gap: 6px;
-
 
       .orderItem {
         border: 1px solid #aee67f;
@@ -120,6 +120,10 @@
 
     span {
       color: #979995;
+
+      &.nameSuffix {
+        color: #fff;
+      }
     }
   }
 }

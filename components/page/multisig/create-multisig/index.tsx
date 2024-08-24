@@ -19,22 +19,31 @@ import styles from "./index.module.scss";
 import { displayToast, TToastType } from "@/contexts/toasts/Toast";
 import NumberFormat from "react-number-format";
 import { useTonConnectUI } from "@tonconnect/ui-react";
+import { useRouter } from "next/navigation";
+import useHandleMultisigServer from "@/hooks/useHandleMultisigServer";
 
 const CreateMultisig = () => {
   const { handleSetListMultisig } = useMultisigActions();
   const [tonConnectUI] = useTonConnectUI();
+  const router = useRouter();
 
   const listMultisig = useGetListMultisig();
   const tonAddress = useAuthTonAddress();
   const [loading, setLoading] = useState(false);
   const [threshold, setThreshold] = useState<number>();
+  const [name, setName] = useState<string>();
   // useGoBackBrowser();
-  const [signers, setSigners] = useState<{ id: number; value: string }[]>([
+  const [signers, setSigners] = useState<
+    { id: number; value: string; name: string }[]
+  >([
     {
       id: 0,
       value: undefined,
+      name: undefined,
     },
   ]);
+
+  const { addMultisigSnapshot } = useHandleMultisigServer();
 
   const addNewSigner = () => {
     setSigners([
@@ -42,6 +51,7 @@ const CreateMultisig = () => {
       {
         id: (signers[signers.length - 1]?.id || 0) + 1,
         value: undefined,
+        name: undefined,
       },
     ]);
   };
@@ -51,9 +61,9 @@ const CreateMultisig = () => {
     setSigners(newSigner);
   };
 
-  const [proposers, setProposers] = useState<{ id: number; value: string }[]>(
-    []
-  );
+  const [proposers, setProposers] = useState<
+    { id: number; value: string; name: string }[]
+  >([]);
 
   const addNewProposers = () => {
     setProposers([
@@ -61,6 +71,7 @@ const CreateMultisig = () => {
       {
         id: (proposers[proposers.length - 1]?.id || 0) + 1,
         value: undefined,
+        name: undefined,
       },
     ]);
   };
@@ -116,19 +127,24 @@ const CreateMultisig = () => {
           ],
           validUntil: Date.now() + 1000 * 60 * 5,
         });
-        console.log({
+        // if (!listMultisig[tonAddress]) {
+        //   listMultisig[tonAddress] = [multisig.address.toString()];
+        // } else {
+        //   listMultisig[tonAddress].push(multisig.address.toString());
+        // }
+        // handleSetListMultisig({ listMultisig });
+
+        const dataSaveBE = {
+          name,
           address: multisig.address.toString(),
-          amount: toNano(1).toString(),
-          stateInit: multisigConfigToCell(multisigConfig)
-            .toBoc()
-            .toString("base64"),
-        });
-        if (!listMultisig[tonAddress]) {
-          listMultisig[tonAddress] = [multisig.address.toString()];
-        } else {
-          listMultisig[tonAddress].push(multisig.address.toString());
-        }
-        handleSetListMultisig({ listMultisig });
+          createdBy: tonAddress,
+          importedBy: JSON.stringify([]),
+          signers: JSON.stringify(signers),
+          proposers: JSON.stringify(proposers),
+        };
+        await addMultisigSnapshot(dataSaveBE);
+
+        router.push(`/multisig/${multisig.address}/detail`);
       } catch (error) {
         console.log("error", error);
         displayToast(TToastType.TX_FAILED, {
@@ -143,6 +159,23 @@ const CreateMultisig = () => {
   return (
     <div className={styles.createMulti}>
       <div className={styles.form}>
+        <label>Name:</label>
+        <br />
+        <br />
+        <div className={styles.formItem}>
+          <input
+            type="text"
+            value={name}
+            placeholder="Multisig name . . ."
+            onChange={(e) => {
+              e.preventDefault();
+              const value = e.target.value;
+              setName(value);
+            }}
+          />
+        </div>
+      </div>
+      <div className={styles.form}>
         <label>Signer:</label>
         <br />
         <br />
@@ -152,13 +185,27 @@ const CreateMultisig = () => {
               <span>#{index + 1}</span>
               <input
                 type="text"
-                value={s.value}
-                placeholder="Signer . . ."
+                value={s.name}
+                placeholder="Signer name . . ."
                 onChange={(e) => {
                   e.preventDefault();
                   const value = e.target.value;
 
-                  console.log("value", value, s.id);
+                  const newSigner = signers.map((oldS) =>
+                    oldS.id === s.id ? { ...oldS, name: value } : oldS
+                  );
+
+                  setSigners(newSigner);
+                }}
+              />
+              <input
+                type="text"
+                value={s.value}
+                placeholder="Signer address . . ."
+                onChange={(e) => {
+                  e.preventDefault();
+                  const value = e.target.value;
+
                   const newSigner = signers.map((oldS) =>
                     oldS.id === s.id ? { ...oldS, value } : oldS
                   );
@@ -186,8 +233,23 @@ const CreateMultisig = () => {
               <span>#{index + 1}</span>
               <input
                 type="text"
+                value={p.name}
+                placeholder="Proposer name . . ."
+                onChange={(e) => {
+                  e.preventDefault();
+                  const value = e.target.value;
+
+                  const newProposer = proposers.map((oldP) =>
+                    oldP.id === p.id ? { ...oldP, name: value } : oldP
+                  );
+
+                  setProposers(newProposer);
+                }}
+              />
+              <input
+                type="text"
                 value={p.value}
-                placeholder="Proposer . . ."
+                placeholder="Proposer address . . ."
                 onChange={(e) => {
                   e.preventDefault();
                   const value = e.target.value;

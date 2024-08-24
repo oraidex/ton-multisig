@@ -8,6 +8,11 @@ import { useAuthTonAddress } from "@/stores/authentication/selector";
 import { useTonConnector } from "@/contexts/custom-ton-provider";
 import { useEffect, useState } from "react";
 import { Address, fromNano } from "@ton/core";
+import {
+  DEFAULT_BE_DATA,
+  parseJsonDataFromSqlite,
+} from "@/hooks/useHandleMultisigServer";
+import { toUserFriendlyAddress } from "@tonconnect/sdk";
 
 const DetailMultisig = () => {
   const [tonBalance, setTonBalance] = useState(0n);
@@ -22,11 +27,13 @@ const DetailMultisig = () => {
     nextOrderSeqno: 0,
   };
 
+  const parseAddress = (address: string) => Address.parse(address);
+
   useEffect(() => {
     const fetchTonBalance = async () => {
       try {
         const balance = await tonClient.getBalance(
-          Address.parse(addressMultisig)
+          parseAddress(addressMultisig)
         );
         setTonBalance(balance);
       } catch (error) {
@@ -36,10 +43,12 @@ const DetailMultisig = () => {
     fetchTonBalance();
   }, [addressMultisig, tonClient]);
 
+  const { data: dataBE = DEFAULT_BE_DATA } = data || {};
+
   return (
     <div className={styles.detailPage}>
       <div className={styles.detail}>
-        <label>Multisig Address:</label>
+        <label>{dataBE?.name?.toUpperCase() || "Multisig Address"}:</label>
 
         <span className={styles.address}>{addressMultisig}</span>
         <Link href={"/"}>Switch to another multisig</Link>
@@ -48,23 +57,31 @@ const DetailMultisig = () => {
 
         <label>TON Balance:</label>
 
-        {/* TODO: TON balance */}
         <span>{fromNano(tonBalance.toString())} TON</span>
 
         <label>Threshold:</label>
-        {/* TODO: threshold */}
         <span>{`${threshold}/${signers?.length}`}</span>
 
         <label>Signers:</label>
         <div className={styles.list}>
           {(signers || []).map((e, index) => {
+            const signersBE = parseJsonDataFromSqlite(dataBE.signers);
+            const currentSigner = signersBE?.find(
+              (s: any) => s.value === toUserFriendlyAddress(e.toRawString())
+            );
+
             return (
               <div className={styles.item} key={index}>
                 <span className={styles.id}>#{index + 1} - </span>
-                <span className={styles.address}>{e.toString()}</span>
+                <span className={styles.address}>
+                  {toUserFriendlyAddress(e.toRawString())}
+                  <span className={styles.nameSuffix}>
+                    {`${currentSigner ? ` (${currentSigner.name})` : ""}`}
+                  </span>
+                </span>
                 {tonAddress &&
-                  Address.parse(e.toString()).equals(
-                    Address.parse(tonAddress)
+                  parseAddress(e.toString()).equals(
+                    parseAddress(tonAddress)
                   ) && <span className={styles.badge}> It&apos;s You</span>}
               </div>
             );
@@ -78,10 +95,29 @@ const DetailMultisig = () => {
                 <span>No Proposers</span>
               ) : (
                 proposers.map((e: Address, index: number) => {
+                  const proposersBE = parseJsonDataFromSqlite(dataBE.proposers);
+                  const currentProposer = proposersBE?.find(
+                    (s: any) =>
+                      s.value === toUserFriendlyAddress(e.toRawString())
+                  );
+
                   return (
                     <div className={styles.item} key={index}>
                       <span className={styles.id}>#{index + 1} - </span>
-                      <span className={styles.address}>{e.toString()}</span>
+                      <span className={styles.address}>
+                        {toUserFriendlyAddress(e.toRawString())}
+                        <span className={styles.nameSuffix}>
+                          {`${
+                            currentProposer ? ` (${currentProposer.name})` : ""
+                          }`}
+                        </span>
+                      </span>
+                      {tonAddress &&
+                        parseAddress(e.toString()).equals(
+                          parseAddress(tonAddress)
+                        ) && (
+                          <span className={styles.badge}> It&apos;s You</span>
+                        )}
                     </div>
                   );
                 })
@@ -111,7 +147,7 @@ const DetailMultisig = () => {
 
         <br />
 
-        <label>Old orders:</label>
+        {Number(nextOrderSeqno) > 0 && <label>Old orders:</label>}
         <div className={styles.list}>
           {[...Array(Number(nextOrderSeqno.toString())).keys()].map(
             (e, idx) => {
