@@ -21,6 +21,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NumberFormat from "react-number-format";
 import styles from "./index.module.scss";
+import { displayToast, TToastType } from "@/contexts/toasts/Toast";
 
 const EditMultisig = () => {
   const { tonClient } = useTonConnector();
@@ -136,6 +137,9 @@ const EditMultisig = () => {
         router.push(`/multisig/${multisig.address}/detail`);
       } catch (error) {
         console.log("error", error);
+        displayToast(TToastType.TX_FAILED, {
+          message: "Update multisig failed!",
+        });
       } finally {
         setLoading(false);
       }

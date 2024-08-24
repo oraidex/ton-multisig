@@ -16,6 +16,7 @@ import { cellToArray, getSenderFromConnector } from "@/helper";
 import { Order } from "@oraichain/ton-multiowner/dist/wrappers/Order";
 import { useTonConnector } from "@/contexts/custom-ton-provider";
 import { useTonConnectUI } from "@tonconnect/ui-react";
+import { displayToast, TToastType } from "@/contexts/toasts/Toast";
 
 const parseAddress = (address: string) => Address.parse(address);
 const DetailOrder = () => {
@@ -50,8 +51,12 @@ const DetailOrder = () => {
         Address.parse(tonAddress)
       );
       await orderContract.sendApprove(sender, signerIndex, toNano("0.01"));
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      console.log(error);
+
+      displayToast(TToastType.TX_FAILED, {
+        message: typeof error === "string" ? error : JSON.stringify(error),
+      });
     }
   };
 
